@@ -20,7 +20,7 @@ A small React + TypeScript + Material-UI single-page application for the **Brain
 1. Clone the repo:
 
    ```bash
-   git clone https://github.com/YourUser/brainrot-webpage.git
+   git clone https://github.com/araujo88/brainrot-webpage.git
    cd brainrot-webpage
    ```
 
@@ -63,7 +63,6 @@ brainrot-webpage/
 │  ├─ App.tsx
 │  ├─ index.tsx
 │  ├─ brainrot-logo.png
-│  ├─ DarkTheme.ts
 │  └─ ...other components...
 ├─ package.json
 ├─ yarn.lock
