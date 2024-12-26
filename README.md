@@ -1,17 +1,16 @@
 # Brainrot Webpage
 
-A small React + TypeScript + Material-UI single-page application for the **Brainrot** programming language docs.
+A small React + TypeScript + Tailwind single-page application for the **Brainrot** programming language docs.
 
 ## Features
 
 - **React + TS**: TypeScript for type safety, React for the UI.
-- **Material-UI**: For a modern, responsive, dark-mode UI.
+- **Tailwind**: For a modern and responsive UI.
 - **Brainrot Logo**: Showcases the brand with an imported image.
-- **Dark Theme**: Example usage of a custom dark MUI theme.
 
 ## Requirements
 
-- Node.js v16+ (or similar)
+- Node.js v18+ (or similar)
 - Yarn or npm
 - TypeScript dev dependencies
 
@@ -61,7 +60,7 @@ brainrot-webpage/
 │  └─ favicon.ico
 ├─ src/
 │  ├─ App.tsx
-│  ├─ index.tsx
+│  ├─ index.css
 │  ├─ brainrot-logo.png
 │  └─ ...other components...
 ├─ package.json
@@ -71,23 +70,4 @@ brainrot-webpage/
 
 ## License
 
-This project is distributed under the GPL license or whichever license you choose. See the LICENSE file for more information.
-
-```
-</details>
-
-You can adapt the wording and structure to match your own project’s details and disclaimers.
-
----
-
-## 5. Final Checklist
-
-1. **Create** `App.tsx` (or rename if you already had it under a different name).
-2. **Import** `App` in `index.tsx`.
-3. **Install** TypeScript + `@typescript-eslint/parser` if missing.
-4. **Add** your logo in `src/`, import it in your `App.tsx` to display.
-5. **Update** or create a `README.md` with instructions.
-6. Run `yarn start` (or `npm start`) to test your page.
-
-Once those steps are done, you should have a fully working React+TypeScript MUI site in dark mode, with the Brainrot logo at the top. Enjoy!
-```
+This project is distributed under the MIT license. See the LICENSE file for more information.
