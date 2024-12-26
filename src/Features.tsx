@@ -1,11 +1,11 @@
 import React from "react";
-import { Monitor, Terminal, Users } from 'lucide-react';
+import { Monitor, Terminal, Users, Box } from 'lucide-react';
 
 const Features: React.FC = () => {
 return (
 <div>
     <div className="container mx-auto py-16 px-4">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-4 gap-8">
           <div className="bg-gray-800 p-6 rounded-lg">
             <Monitor className="w-12 h-12 mb-4 text-purple-400" />
             <h3 className="text-xl font-semibold mb-2">Based Syntax</h3>
@@ -25,6 +25,16 @@ return (
               <li>Built-in meme references</li>
               <li>Error messages that don't make you cry</li>
               <li>VSCode support (no cap)</li>
+            </ul>
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded-lg">
+            <Box className="w-12 h-12 mb-4 text-purple-400" />
+            <h3 className="text-xl font-semibold mb-2">"Why Tho?"</h3>
+            <ul className="mt-2 space-y-1 text-gray-300">
+              <li>Brainrot keeps it 100 with classic C vibes.</li>
+              <li>Straight-up simple and OG, no boujee modern fluff or sus abstractions.</li>
+              <li>Just raw, clean code for the real ones.</li>
             </ul>
           </div>
 

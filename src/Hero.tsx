@@ -7,7 +7,7 @@ const Hero: React.FC = () => {
           <h1 className="text-5xl font-bold mb-6">No Cap, Just Pure Rizz 🔥</h1>
           <p className="text-xl mb-8">
             The most bussin' programming language that'll have your code
-            absolutely based!
+            absolutely based! 🗿
           </p>
           <div className="space-x-4">
             <button 
