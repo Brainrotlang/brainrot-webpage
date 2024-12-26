@@ -19,7 +19,7 @@ A small React + TypeScript + Tailwind single-page application for the **Brainrot
 1. Clone the repo:
 
    ```bash
-   git clone https://github.com/araujo88/brainrot-webpage.git
+   git clone https://github.com/Brainrotlang/brainrot-webpage.git
    cd brainrot-webpage
    ```
 
