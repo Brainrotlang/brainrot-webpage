@@ -38,6 +38,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@typescript-eslint/parser": "^8.18.2",
     "autoprefixer": "^10.4.20",
     "eslint-plugin-jsx-a11y": "^6.10.2",
