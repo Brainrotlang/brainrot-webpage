@@ -9,6 +9,7 @@ return (
             <div className="flex justify-center space-x-6">
                 <a href="https://discord.gg/G9BqwB3a" className="hover:text-purple-400">Discord</a>
                 <a href="https://github.com/Brainrotlang/brainrot" className="hover:text-purple-400">GitHub</a>
+                <a href="https://x.com/brainrotlang" className="hover:text-purple-400">Xwitter</a>
             </div>
             <p className="mt-6 text-sm text-gray-400">
                 © 2024 Brainrot - No thoughts, just vibes

@@ -19,6 +19,12 @@ const Navbar: React.FC = () => {
                         >
                         GitHub
                         </a>
+                        <a
+                        href="https://x.com/brainrotlang"
+                        className="hover:text-purple-400"
+                        >
+                        Xwitter
+                        </a>
                     </div>
                 </div>
             </nav>
