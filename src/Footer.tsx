@@ -7,7 +7,7 @@ return (
             <div className="container mx-auto px-4 text-center">
             <p className="mb-4">Made with 💀 by the most unhinged developers 🧟</p>
             <div className="flex justify-center space-x-6">
-                <a href="https://discord.gg/G9BqwB3a" className="hover:text-purple-400">Discord</a>
+                <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Discord</a>
                 <a href="https://github.com/Brainrotlang/brainrot" className="hover:text-purple-400">GitHub</a>
                 <a href="https://x.com/brainrotlang" className="hover:text-purple-400">Xwitter</a>
             </div>

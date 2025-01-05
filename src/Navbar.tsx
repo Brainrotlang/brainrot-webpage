@@ -12,7 +12,7 @@ const Navbar: React.FC = () => {
                     </div>
                     <div className="flex space-x-6">
                         <a href="https://github.com/Brainrotlang/brainrot/tree/main/docs" className="hover:text-purple-400">Docs</a>
-                        <a href="https://discord.gg/G9BqwB3a" className="hover:text-purple-400">Community</a>
+                        <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Community</a>
                         <a
                         href="https://github.com/Brainrotlang/brainrot"
                         className="hover:text-purple-400"
