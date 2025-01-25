@@ -25,6 +25,12 @@ const Navbar: React.FC = () => {
                         >
                         Xwitter
                         </a>
+                        <a
+                        href="https://www.reddit.com/r/Brainrotlang" 
+                        className="hover:text-purple-400"
+                        >
+                        Subreddit
+                        </a>
                     </div>
                 </div>
             </nav>
