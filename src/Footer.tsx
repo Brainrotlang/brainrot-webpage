@@ -10,7 +10,7 @@ return (
                 <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Discord</a>
                 <a href="https://github.com/Brainrotlang/brainrot" className="hover:text-purple-400">GitHub</a>
                 <a href="https://x.com/brainrotlang" className="hover:text-purple-400">Xwitter</a>
-                <a href="https://www.reddit.com/r/Brainrotlang" className="hover:text-purple-400">Subdreddit</a>
+                <a href="https://www.reddit.com/r/Brainrotlang" className="hover:text-purple-400">Subreddit</a>
             </div>
             <p className="mt-6 text-sm text-gray-400">
                 © 2024 Brainrot - No thoughts, just vibes

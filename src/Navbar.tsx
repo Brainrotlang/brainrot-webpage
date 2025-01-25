@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
                         href="https://www.reddit.com/r/Brainrotlang" 
                         className="hover:text-purple-400"
                         >
-                        Subdreddit
+                        Subreddit
                         </a>
                     </div>
                 </div>
