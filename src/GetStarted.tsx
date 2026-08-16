@@ -36,7 +36,7 @@ make  # Compilation go brrrrr`}
           <h3 className="text-xl mb-4">Run!</h3>
           <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
             <code className="text-green-400">
-{`./brainrot < noobz.brainrot`}
+{`./brainrot noobz.brainrot`}
             </code>
           </pre>
         </div>
