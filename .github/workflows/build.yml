@@ -30,6 +30,22 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install # will run `yarn install` command
+
+      - name: Run unit tests
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: test --watchAll=false # will run `yarn test --watchAll=false` command
+
+      - name: Fetch pinned brainrot.wasm
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: fetch-wasm # will run `yarn fetch-wasm` command (scripts/fetch-wasm.mjs)
+
+      - name: Verify wasm runtime against the real artifact
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: verify:wasm # will run `yarn verify:wasm` command
+
       - name: Build production bundle
         uses: borales/actions-yarn@v4
         with:

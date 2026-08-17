@@ -14,9 +14,13 @@
     "react-scripts": "5.0.1"
   },
   "scripts": {
+    "fetch-wasm": "node scripts/fetch-wasm.mjs",
+    "prestart": "yarn fetch-wasm",
+    "prebuild": "yarn fetch-wasm",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "verify:wasm": "node scripts/verify-wasm-runtime.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -39,6 +43,10 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@typescript-eslint/parser": "^8.18.2",
     "autoprefixer": "^10.4.20",
     "eslint-plugin-jsx-a11y": "^6.10.2",
