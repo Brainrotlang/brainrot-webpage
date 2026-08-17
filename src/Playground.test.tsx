@@ -1,7 +1,7 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Playground from "./Playground";
-import { runBrainrot } from "./playground/runtime";
+import { runBrainrot, RuntimeLoadError } from "./playground/runtime";
 import type { RunResult } from "./playground/runtime";
 
 // runtime.ts itself statically imports createWasmWorker.ts, which uses
@@ -11,8 +11,15 @@ import type { RunResult } from "./playground/runtime";
 // createWasmWorker) keeps that out of the module graph entirely; this
 // file only cares about runBrainrot's public Promise<RunResult> contract,
 // not its internals (those are runtime.test.ts's job).
+//
+// RuntimeLoadError is redefined here (not pulled via requireActual) for
+// the same reason: the real module isn't loadable under Jest at all. A
+// standalone class works fine for the `instanceof` checks in
+// Playground.tsx's catch handler, since both it and this test file import
+// "RuntimeLoadError" from this same mocked module — same class reference.
 jest.mock("./playground/runtime", () => ({
   runBrainrot: jest.fn(),
+  RuntimeLoadError: class RuntimeLoadError extends Error {},
 }));
 
 const mockRunBrainrot = runBrainrot as jest.MockedFunction<typeof runBrainrot>;
@@ -104,9 +111,11 @@ test("stderr renders visually distinct from stdout", async () => {
   expect(stderrEl.closest("div")?.className).toMatch(/text-red/);
 });
 
-test("a load failure degrades gracefully: read-only code, no Run button, install link", async () => {
+test("a RuntimeLoadError degrades gracefully: read-only code, no Run button, install link", async () => {
   const user = userEvent.setup();
-  mockRunBrainrot.mockRejectedValue(new Error("Timed out loading the Brainrot runtime (no response after 15000ms)"));
+  mockRunBrainrot.mockRejectedValue(
+    new RuntimeLoadError("Timed out loading the Brainrot runtime (no response after 15000ms)"),
+  );
   render(<Playground />);
 
   await user.click(screen.getByRole("button", { name: /run/i }));
@@ -124,6 +133,64 @@ test("a load failure degrades gracefully: read-only code, no Run button, install
   // A way out: a link toward the local-install instructions.
   const installLink = screen.getByRole("link", { name: /install instructions/i });
   expect(installLink).toHaveAttribute("href", "#get-started-section");
+});
+
+test("a post-ready crash (plain Error, not RuntimeLoadError) shows in the output pane and leaves the playground runnable", async () => {
+  // Regression test for a real bug caught in review: every runBrainrot()
+  // rejection — including a wasm trap/abort *after* the module loaded
+  // fine — was treated as "the runtime failed to load," permanently
+  // bricking the section (no Run button, read-only editor) over what's
+  // actually just this one run's problem.
+  const user = userEvent.setup();
+  mockRunBrainrot.mockRejectedValue(new Error("unreachable executed"));
+  render(<Playground />);
+
+  await user.click(screen.getByRole("button", { name: /run/i }));
+
+  await screen.findByText(/unreachable executed/i);
+
+  // Must NOT have degraded to the load-failed panel.
+  expect(screen.queryByText(/couldn't load the brainrot runtime/i)).not.toBeInTheDocument();
+  const runButton = screen.getByRole("button", { name: /^run$/i });
+  expect(runButton).toBeEnabled();
+  expect(screen.getByLabelText("Brainrot code editor")).toHaveAttribute("contenteditable", "true");
+
+  // Running again must still work.
+  mockRunBrainrot.mockResolvedValue({ stdout: "ok\n", stderr: "", exitCode: 0, timedOut: false });
+  await user.click(runButton);
+  await screen.findByText(/^ok$/);
+});
+
+test("Cmd/Ctrl+Enter key-repeat cannot start a second run before state catches up", async () => {
+  // Regression test for a real bug caught in review: `isRunning` is React
+  // state, so it doesn't block a second runProgram() call that happens in
+  // the same tick (e.g. a held-down Cmd/Ctrl+Enter repeating through
+  // BrainrotEditor's keymap, which doesn't check any disabled state).
+  const user = userEvent.setup();
+  const { promise, resolve } = deferred<RunResult>();
+  mockRunBrainrot.mockReturnValue(promise);
+  render(<Playground />);
+
+  const editor = screen.getByLabelText("Brainrot code editor");
+  await user.click(editor);
+
+  // CodeMirror's keymap handles keydown via its own DOM listener,
+  // entirely outside React's synthetic event system — `userEvent.keyboard`
+  // yields to React between key presses (letting isRunning:true commit
+  // before the second Enter), which does not reproduce the race. Firing
+  // both raw keydown events inside a single `act()` call keeps them in
+  // the same synchronous batch, so both handler invocations see the same
+  // pre-update `runProgram` closure — the actual race a real held-down
+  // key produces.
+  act(() => {
+    fireEvent.keyDown(editor, { key: "Enter", ctrlKey: true });
+    fireEvent.keyDown(editor, { key: "Enter", ctrlKey: true });
+  });
+
+  expect(mockRunBrainrot).toHaveBeenCalledTimes(1);
+
+  resolve({ stdout: "hi\n", stderr: "", exitCode: 0, timedOut: false });
+  await screen.findByText(/^hi$/);
 });
 
 test("Reset restores the selected example's original source after edits", async () => {

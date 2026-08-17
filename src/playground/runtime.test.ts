@@ -226,23 +226,49 @@ test("a late ready after the promise has already settled does not schedule a new
   setTimeoutSpy.mockRestore();
 });
 
-test("rejects when the worker reports an error", async () => {
-  const { runBrainrot } = await importRuntime();
+test("rejects with RuntimeLoadError when the worker reports an error before ready (module never loaded)", async () => {
+  const { runBrainrot, RuntimeLoadError } = await importRuntime();
 
   const pending = runBrainrot("skibidi main { }");
   await Promise.resolve();
   const worker = mockInstances[0];
 
+  // No "ready" was ever sent — this is the module itself failing to
+  // fetch/instantiate, not a program crash.
   worker.onmessage?.({
     data: { type: "error", message: "failed to load brainrot.mjs" },
   } as MessageEvent<WorkerResponse>);
 
   await expect(pending).rejects.toThrow("failed to load brainrot.mjs");
+  await expect(pending).rejects.toBeInstanceOf(RuntimeLoadError);
   expect(worker.terminated).toBe(true);
 });
 
-test("rejects when the worker itself errors (e.g. failed to fetch the script)", async () => {
-  const { runBrainrot } = await importRuntime();
+test("rejects with a plain Error (not RuntimeLoadError) when the worker errors after ready", async () => {
+  // Regression test for a real bug caught in review: the module loaded
+  // fine (a real "ready" was received) and it's the *program* that
+  // crashed afterward (a wasm trap, an unexpected abort) — that must not
+  // be indistinguishable from "the runtime failed to load," since the
+  // caller (Playground.tsx) treats RuntimeLoadError as "nothing can run
+  // here right now" and anything else as "this particular run failed."
+  const { runBrainrot, RuntimeLoadError } = await importRuntime();
+
+  const pending = runBrainrot("skibidi main { }");
+  await Promise.resolve();
+  const worker = mockInstances[0];
+
+  worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>);
+  worker.onmessage?.({
+    data: { type: "error", message: "unreachable code" },
+  } as MessageEvent<WorkerResponse>);
+
+  await expect(pending).rejects.toThrow("unreachable code");
+  await expect(pending).rejects.not.toBeInstanceOf(RuntimeLoadError);
+  expect(worker.terminated).toBe(true);
+});
+
+test("rejects with RuntimeLoadError when the worker itself errors (e.g. failed to fetch the script)", async () => {
+  const { runBrainrot, RuntimeLoadError } = await importRuntime();
 
   const pending = runBrainrot("skibidi main { }");
   await Promise.resolve();
@@ -251,7 +277,25 @@ test("rejects when the worker itself errors (e.g. failed to fetch the script)", 
   worker.onerror?.({ message: "script load failed" } as ErrorEvent);
 
   await expect(pending).rejects.toThrow("script load failed");
+  await expect(pending).rejects.toBeInstanceOf(RuntimeLoadError);
   expect(worker.terminated).toBe(true);
+});
+
+test("rejects with RuntimeLoadError on the load-timeout path", async () => {
+  jest.useFakeTimers();
+  try {
+    const { runBrainrot, RuntimeLoadError } = await importRuntime();
+
+    const pending = runBrainrot("skibidi main { }");
+    await Promise.resolve();
+
+    jest.advanceTimersByTime(15000); // LOAD_TIMEOUT_MS
+    jest.advanceTimersByTime(1); // the deferred re-check
+
+    await expect(pending).rejects.toBeInstanceOf(RuntimeLoadError);
+  } finally {
+    jest.useRealTimers();
+  }
 });
 
 test("each call creates its own worker — no reuse across runs", async () => {

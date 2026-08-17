@@ -16,7 +16,7 @@
 import { useRef, useState } from "react";
 import { Play, RotateCcw, Loader2, AlertTriangle, Clock } from "lucide-react";
 import { BrainrotEditor } from "./playground/BrainrotEditor";
-import { runBrainrot, type RunResult } from "./playground/runtime";
+import { runBrainrot, RuntimeLoadError, type RunResult } from "./playground/runtime";
 import { PLAYGROUND_EXAMPLES, DEFAULT_PLAYGROUND_EXAMPLE } from "./playground/examples";
 
 type RunState =
@@ -54,28 +54,51 @@ function Playground() {
   const [runState, setRunState] = useState<RunState>({ status: "idle" });
 
   // Guards a resolved/rejected promise from a previous run clobbering a
-  // *newer* run's state. The UI disables Run while running, so in
-  // practice there's only ever one in-flight run — this is a cheap
-  // belt-and-suspenders guard, not something exercised through normal use.
+  // *newer* run's state.
   const runIdRef = useRef(0);
+  // Synchronous single-flight gate. `isRunning` (React state) only flips
+  // on the next render, so it can't stop a second runProgram() call that
+  // happens in the same tick — e.g. Cmd/Ctrl+Enter key-repeat via
+  // BrainrotEditor's keymap, which doesn't know about the Run button's
+  // disabled state. This ref is set the instant a run starts, before any
+  // state update or async work, so a same-tick second call is rejected
+  // immediately instead of launching a second worker.
+  const inFlightRef = useRef(false);
 
   const selectedExample = PLAYGROUND_EXAMPLES.find((e) => e.id === exampleId) ?? DEFAULT_PLAYGROUND_EXAMPLE;
   const isRunning = runState.status === "running";
   const isLoadFailed = runState.status === "loadFailed";
 
   const runProgram = () => {
-    if (isRunning || isLoadFailed) return;
+    if (inFlightRef.current || isLoadFailed) return;
+    inFlightRef.current = true;
     const runId = ++runIdRef.current;
     setRunState({ status: "running" });
     runBrainrot(source, stdin)
       .then((result) => {
+        inFlightRef.current = false;
         if (runIdRef.current !== runId) return;
         setRunState({ status: "result", result });
       })
       .catch((error: unknown) => {
+        inFlightRef.current = false;
         if (runIdRef.current !== runId) return;
         const message = error instanceof Error ? error.message : String(error);
-        setRunState({ status: "loadFailed", message });
+        if (error instanceof RuntimeLoadError) {
+          // The runtime itself never loaded — nothing can run here right
+          // now. Degrade the whole section instead of pretending Run
+          // still works.
+          setRunState({ status: "loadFailed", message });
+        } else {
+          // The module loaded fine; the *program* crashed after it
+          // started running (a wasm trap, an unexpected abort). That's
+          // this run's problem, not the playground's — show it like any
+          // other result and leave Run/Reset/examples usable.
+          setRunState({
+            status: "result",
+            result: { stdout: "", stderr: message, exitCode: -1, timedOut: false },
+          });
+        }
       });
   };
 
@@ -120,7 +143,7 @@ function Playground() {
                     onChange={setSource}
                     onRun={runProgram}
                     ariaLabel="Brainrot code editor"
-                    className="h-72 md:h-96"
+                    className="h-72 md:h-96 overflow-hidden [&_.cm-editor]:h-full"
                   />
                 </div>
                 <div className="w-full md:w-1/2">
@@ -255,7 +278,7 @@ function LoadFailedPanel({ source, message }: { source: string; message: string 
           onChange={() => {}}
           ariaLabel="Brainrot code (read-only — the runtime failed to load)"
           readOnly
-          className="h-72 md:h-96"
+          className="h-72 md:h-96 overflow-hidden [&_.cm-editor]:h-full"
         />
       </div>
       <div className="w-full md:w-1/2 bg-gray-900 border border-red-900 rounded-lg p-4 flex flex-col justify-center">
