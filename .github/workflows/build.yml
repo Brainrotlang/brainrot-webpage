@@ -19,34 +19,34 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: Set Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
           node-version: 18.x
           
       - name: Run install
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: install # will run `yarn install` command
 
       - name: Run unit tests
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: test --watchAll=false # will run `yarn test --watchAll=false` command
 
       - name: Fetch pinned brainrot.wasm
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: fetch-wasm # will run `yarn fetch-wasm` command (scripts/fetch-wasm.mjs)
 
       - name: Verify wasm runtime against the real artifact
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: verify:wasm # will run `yarn verify:wasm` command
 
       - name: Build production bundle
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: build # will run `yarn build` command
