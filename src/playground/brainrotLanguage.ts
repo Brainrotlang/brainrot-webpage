@@ -50,6 +50,11 @@ const CONTROL_KEYWORDS = new Set([
   "ohio",
   "based",
   "cringe",
+  // Not in #8's own keyword breakdown, but lang.l has `"main" { return
+  // MAIN; }` — a genuine reserved word (unlike C, where `main` is just a
+  // regular identifier by convention), and the hello-world sample itself
+  // is `skibidi main {`. Source of truth is the lexer, not the issue text.
+  "main",
 ]);
 
 const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "whopper", "maxxing"]);

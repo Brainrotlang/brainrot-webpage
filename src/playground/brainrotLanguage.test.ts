@@ -35,6 +35,7 @@ test("hello-world sample: skibidi as a type, yapping as a builtin, bussin as con
   const tokens = tokensOf('skibidi main {\n    yapping("hi"); 🚽 say hi\n    bussin 0;\n}\n');
 
   expect(find(tokens, "skibidi")?.name).toBe("typeName");
+  expect(find(tokens, "main")?.name).toBe("keyword");
   expect(find(tokens, "yapping")?.name).toBe("variableName.standard");
   expect(find(tokens, "bussin")?.name).toBe("keyword");
   expect(find(tokens, "🚽 say hi")?.name).toBe("comment");
@@ -62,7 +63,7 @@ test('a variable named "sus" or "lit" is not highlighted as a keyword', () => {
 test("every keyword category from lang.l tokenizes as expected", () => {
   const source = [
     "skibidi rizz cap chad gigachad yap rant giga smol thicc nut nonut gang gyatt chungus",
-    "flex goon mewing edgy amogus bruh grind bussin ohio based cringe",
+    "flex goon mewing edgy amogus bruh grind bussin ohio based cringe main",
     "deadass salty schizo whopper maxxing",
     "W L",
     "yapping yappin baka ragequit chill slorp bet",
@@ -70,7 +71,7 @@ test("every keyword category from lang.l tokenizes as expected", () => {
   const tokens = tokensOf(source);
 
   const types = ["skibidi", "rizz", "cap", "chad", "gigachad", "yap", "rant", "giga", "smol", "thicc", "nut", "nonut", "gang", "gyatt", "chungus"];
-  const controlFlow = ["flex", "goon", "mewing", "edgy", "amogus", "bruh", "grind", "bussin", "ohio", "based", "cringe"];
+  const controlFlow = ["flex", "goon", "mewing", "edgy", "amogus", "bruh", "grind", "bussin", "ohio", "based", "cringe", "main"];
   const modifiers = ["deadass", "salty", "schizo", "whopper", "maxxing"];
   const booleans = ["W", "L"];
   const builtins = ["yapping", "yappin", "baka", "ragequit", "chill", "slorp", "bet"];
@@ -105,5 +106,9 @@ test("tokenizing a ~100-line program completes quickly", () => {
   const elapsedMs = performance.now() - start;
 
   expect(tokens.length).toBeGreaterThan(100);
-  expect(elapsedMs).toBeLessThan(200);
+  // Generous on purpose — this is a smoke check against a catastrophic
+  // regression (e.g. accidental O(n^2) backtracking), not a real
+  // performance benchmark, and a loaded/slow CI runner shouldn't make it
+  // flake. Locally this runs in low single-digit milliseconds.
+  expect(elapsedMs).toBeLessThan(2000);
 });
