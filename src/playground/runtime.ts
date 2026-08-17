@@ -152,9 +152,13 @@ export function runBrainrot(
     };
 
     worker.onerror = (ev: ErrorEvent) => {
-      // The worker script itself is broken (e.g. failed to fetch its own
-      // chunk) — always a load-level failure, not a program crash.
-      fail(new RuntimeLoadError(ev.message || "Worker error"));
+      // Same split as the "error" message above: before "ready" this is
+      // the worker script itself failing (e.g. failed to fetch its own
+      // chunk) — a load failure. After "ready", an uncaught exception
+      // escaping the worker (some Emscripten abort/trap paths land here
+      // instead of the async .catch() in wasmWorker.ts) is the *program*
+      // crashing post-load, not the runtime failing to load.
+      fail(loaded ? new Error(ev.message || "Worker error") : new RuntimeLoadError(ev.message || "Worker error"));
     };
 
     const wasmBaseUrl = `${process.env.PUBLIC_URL}/wasm/`;

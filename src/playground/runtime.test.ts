@@ -267,7 +267,7 @@ test("rejects with a plain Error (not RuntimeLoadError) when the worker errors a
   expect(worker.terminated).toBe(true);
 });
 
-test("rejects with RuntimeLoadError when the worker itself errors (e.g. failed to fetch the script)", async () => {
+test("rejects with RuntimeLoadError when the worker itself errors before ready (e.g. failed to fetch the script)", async () => {
   const { runBrainrot, RuntimeLoadError } = await importRuntime();
 
   const pending = runBrainrot("skibidi main { }");
@@ -278,6 +278,28 @@ test("rejects with RuntimeLoadError when the worker itself errors (e.g. failed t
 
   await expect(pending).rejects.toThrow("script load failed");
   await expect(pending).rejects.toBeInstanceOf(RuntimeLoadError);
+  expect(worker.terminated).toBe(true);
+});
+
+test("rejects with a plain Error (not RuntimeLoadError) when worker.onerror fires after ready", async () => {
+  // Regression test for a second-pass review finding: worker.onerror had
+  // the same "always RuntimeLoadError" bug the onmessage {type:"error"}
+  // handler was fixed for last round, just missed. Some Emscripten
+  // abort/trap paths surface as an uncaught exception that reaches
+  // onerror instead of wasmWorker.ts's own async .catch() — after a real
+  // "ready", that's the *program* crashing post-load, not the runtime
+  // failing to load, and must not brick the playground.
+  const { runBrainrot, RuntimeLoadError } = await importRuntime();
+
+  const pending = runBrainrot("skibidi main { }");
+  await Promise.resolve();
+  const worker = mockInstances[0];
+
+  worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>);
+  worker.onerror?.({ message: "unreachable executed" } as ErrorEvent);
+
+  await expect(pending).rejects.toThrow("unreachable executed");
+  await expect(pending).rejects.not.toBeInstanceOf(RuntimeLoadError);
   expect(worker.terminated).toBe(true);
 });
 
