@@ -164,6 +164,39 @@ test("rejects (not timedOut:true) if the wasm module never signals ready within 
   }
 });
 
+test("an in-flight ready processed exactly at the load deadline wins the race, not the timeout", async () => {
+  jest.useFakeTimers();
+  try {
+    const { runBrainrot } = await importRuntime();
+
+    const pending = runBrainrot("skibidi main { }", "", 20);
+    await Promise.resolve();
+    const worker = mockInstances[0];
+
+    // Fire the outer load-deadline timer. This schedules an internal
+    // deferred re-check (see runtime.ts) rather than rejecting
+    // immediately — the whole point being to give a "ready" that was
+    // already in flight a chance to be processed first.
+    jest.advanceTimersByTime(15000); // LOAD_TIMEOUT_MS
+
+    // Simulate that in-flight "ready" landing now — i.e. before the
+    // deferred re-check has had its turn. A correct implementation must
+    // treat this as "loaded in time", not race it against the pending
+    // reject.
+    worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>);
+
+    // Let the deferred re-check (and then the real execution timer) run.
+    jest.advanceTimersByTime(1); // the deferred load-timeout re-check
+    jest.advanceTimersByTime(20); // the execution budget, now started
+
+    const result = await pending;
+    expect(result).toEqual({ stdout: "", stderr: "", exitCode: -1, timedOut: true });
+    expect(worker.terminated).toBe(true);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
 test("a late ready after the promise has already settled does not schedule a new timer", async () => {
   const { runBrainrot } = await importRuntime();
 

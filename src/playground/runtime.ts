@@ -60,6 +60,14 @@ export function runBrainrot(
     const worker = createWasmWorker();
 
     let settled = false;
+    // Set synchronously the instant "ready" is processed — distinct from
+    // `settled`, which only becomes true once the whole run finishes.
+    // "ready" itself doesn't settle anything, it just starts the
+    // execution timer, so the deferred load-timeout check below has to
+    // ask "did the module become ready" rather than "is the run over" —
+    // conflating the two was exactly the bug the last round of review
+    // caught here.
+    let loaded = false;
     let timer: ReturnType<typeof setTimeout>;
 
     const finish = (result: RunResult) => {
@@ -88,11 +96,11 @@ export function runBrainrot(
     // though "ready" was already in flight. Rather than reject the instant
     // the timer fires, requeue the check one more macrotask out — any
     // "ready" that was already queued at that point gets processed first
-    // and clears/reschedules `timer`, so the deferred check below then
-    // finds `settled` already handled and does nothing.
+    // and sets `loaded`, so the deferred check below then finds it and
+    // does nothing.
     timer = setTimeout(() => {
       setTimeout(() => {
-        if (settled) return;
+        if (loaded || settled) return;
         fail(new Error(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
       }, 0);
     }, LOAD_TIMEOUT_MS);
@@ -105,6 +113,9 @@ export function runBrainrot(
         // anyway) — the worker is terminated and this message is stale;
         // do not resurrect it with a fresh execution timer.
         if (settled) return;
+        // Set before anything async-adjacent happens: this is exactly
+        // what the deferred load-timeout check above is watching for.
+        loaded = true;
         // Phase 2: the module is up: switch to the caller's execution
         // budget. Only now does an infinite `goon (W) {}` loop start
         // counting against timeoutMs.
