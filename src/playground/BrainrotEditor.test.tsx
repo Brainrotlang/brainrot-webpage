@@ -59,11 +59,12 @@ test("an external (parent-driven) value change does not re-fire onChange", () =>
 });
 
 test("an external value change does not pollute the undo stack", async () => {
-  // Regression test for a real bug caught in review: without
-  // Transaction.addToHistory.of(false), a Reset/template-load is
-  // recorded as a normal edit, so Cmd/Ctrl+Z right after loading a
-  // sample would restore whatever was there before the load — not what
-  // a user pressing undo would expect (they didn't type anything).
+  // Regression test for a real bug caught in review: an external sync
+  // used to be recorded as a normal (if history-excluded) edit on top of
+  // the existing state, so Cmd/Ctrl+Z right after loading a sample could
+  // still do something — not what a user pressing undo would expect (they
+  // didn't type anything). The fix resets to a fresh EditorState (see
+  // BrainrotEditor.tsx), which starts with empty history.
   const user = userEvent.setup();
   const onChange = jest.fn();
   const { rerender } = render(<BrainrotEditor value="rizz x = 1;" onChange={onChange} ariaLabel="editor" />);
@@ -78,6 +79,40 @@ test("an external value change does not pollute the undo stack", async () => {
   // Must still show the synced value — undo had nothing of the user's own
   // to revert.
   expect(screen.getByLabelText("editor").textContent).toBe("rizz y = 2;");
+});
+
+test("undo after a user edit followed by an external reset does not corrupt the buffer", async () => {
+  // Regression test for a second-pass review finding: the first fix
+  // (Transaction.addToHistory.of(false) on the sync transaction) only
+  // kept *that* transaction off the undo stack — it didn't clear
+  // pre-existing history. A real edit made *before* an external reset was
+  // still sitting in history and got remapped across the reset's
+  // full-document replace, so Cmd/Ctrl+Z after the reset applied that
+  // stale, remapped edit to the *new* document — neither "undo my
+  // keystroke" nor "undo the reset," just a corrupted buffer. The fix
+  // (view.setState with a fresh EditorState) gives the post-reset
+  // document a genuinely empty history instead.
+  const user = userEvent.setup();
+  const onChange = jest.fn();
+  const { rerender } = render(<BrainrotEditor value="rizz x = 1;" onChange={onChange} ariaLabel="editor" />);
+
+  const content = screen.getByLabelText("editor");
+  await user.click(content);
+  await user.keyboard("!");
+  expect(onChange).toHaveBeenCalled();
+
+  // Parent applies the user's own edit through the controlled value prop,
+  // then separately loads a fresh template — an external replace
+  // unrelated to what the user just typed.
+  rerender(<BrainrotEditor value="rizz reset = 0;" onChange={onChange} ariaLabel="editor" />);
+  expect(screen.getByLabelText("editor").textContent).toBe("rizz reset = 0;");
+
+  await user.click(screen.getByLabelText("editor"));
+  await user.keyboard("{Control>}z{/Control}");
+
+  // Undo must be a no-op: the reset started a fresh document with no
+  // history, so there's nothing of the user's own left to revert.
+  expect(screen.getByLabelText("editor").textContent).toBe("rizz reset = 0;");
 });
 
 test("an ariaLabel prop change updates the editor's accessible name", () => {

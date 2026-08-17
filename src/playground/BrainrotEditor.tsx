@@ -6,7 +6,7 @@
 // CodeMirror over Monaco in the first place.
 
 import { useEffect, useRef } from "react";
-import { Annotation, Compartment, EditorState, Transaction } from "@codemirror/state";
+import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter } from "@codemirror/view";
 import { indentOnInput, bracketMatching, indentUnit } from "@codemirror/language";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
@@ -25,28 +25,30 @@ export interface BrainrotEditorProps {
   className?: string;
 }
 
-// Tags the programmatic sync dispatch (below) so the updateListener can
-// tell it apart from a real edit and skip re-invoking onChange for it —
-// the parent already knows this value, it's the one that set it.
-const externalSync = Annotation.define<boolean>();
-
 const ariaLabelCompartment = new Compartment();
 
 /**
  * value/onChange are controlled the way any other form input is, but
  * CodeMirror 6 itself is imperative — the EditorView is created once (see
  * the empty-deps effect below) and external `value` changes are synced in
- * via a second effect that only dispatches when the doc actually differs,
- * so the user's own typing (which already updates `value` in the parent
- * through onChange) doesn't round-trip back in and reset the cursor/undo
- * stack on every keystroke.
+ * via a second effect that only acts when the doc actually differs, so the
+ * user's own typing (which already updates `value` in the parent through
+ * onChange) doesn't round-trip back in and reset the cursor/undo stack on
+ * every keystroke.
  *
- * That sync dispatch is *not* a real edit, so it's marked accordingly on
- * both ends CodeMirror cares about: `Transaction.addToHistory.of(false)`
- * keeps a Reset/template-load off the undo stack (Cmd/Ctrl+Z right after
- * loading a sample must not restore whatever was there before), and the
- * `externalSync` annotation lets the updateListener recognize its own
- * sync and not treat it as user input.
+ * That sync is done via `view.setState()` with a *fresh* EditorState
+ * rather than a dispatched transaction. A dispatched replace, even with
+ * `Transaction.addToHistory.of(false)`, only keeps that one transaction
+ * off the stack — pre-existing undo items are still mapped through it, so
+ * a user who types, then triggers a Reset/template-load, then hits
+ * Cmd/Ctrl+Z would land on a buffer that's neither "undo my last
+ * keystroke" nor "undo the reset," just corrupted. A fresh EditorState
+ * gets a fresh (empty) history extension instance, so undo has nothing to
+ * replay across the boundary — Cmd/Ctrl+Z right after loading a sample is
+ * correctly a no-op instead of restoring (or mangling) whatever was there
+ * before. It also means the updateListener's `docChanged` is naturally
+ * false for this path (setState produces an update with no transactions),
+ * so no annotation is needed to keep it from re-invoking onChange.
  */
 export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }: BrainrotEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,12 +62,9 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
   onChangeRef.current = onChange;
   onRunRef.current = onRun;
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const state = EditorState.create({
-      doc: value,
+  const createState = (doc: string, label: string) =>
+    EditorState.create({
+      doc,
       extensions: [
         lineNumbers(),
         highlightActiveLine(),
@@ -89,22 +88,23 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
           ...historyKeymap,
         ]),
         EditorView.updateListener.of((update) => {
-          if (!update.docChanged) return;
-          const isExternalSync = update.transactions.some((tr) => tr.annotation(externalSync));
-          if (!isExternalSync) {
+          if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
           }
         }),
-        // In its own Compartment, not baked directly into the initial
-        // extensions list, so a later ariaLabel prop change (unlike
+        // In its own Compartment, not baked directly into the extensions
+        // list as a plain value, so a later ariaLabel prop change (unlike
         // onChange/onRun, this one isn't read from a ref) can be applied
-        // via reconfigure in the effect below without recreating the
-        // whole editor.
-        ariaLabelCompartment.of(EditorView.contentAttributes.of({ "aria-label": ariaLabel })),
+        // via reconfigure in the effect below without a full state reset.
+        ariaLabelCompartment.of(EditorView.contentAttributes.of({ "aria-label": label })),
       ],
     });
 
-    const view = new EditorView({ state, parent: container });
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const view = new EditorView({ state: createState(value, ariaLabel), parent: container });
     viewRef.current = view;
 
     return () => {
@@ -124,11 +124,13 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
     if (!view) return;
     const current = view.state.doc.toString();
     if (current !== value) {
-      view.dispatch({
-        changes: { from: 0, to: current.length, insert: value },
-        annotations: [Transaction.addToHistory.of(false), externalSync.of(true)],
-      });
+      view.setState(createState(value, ariaLabel));
     }
+    // ariaLabel is intentionally not a dependency here: this effect should
+    // only reset state (and clear history) when the *content* changes.
+    // An ariaLabel-only change is handled by the reconfigure effect below,
+    // which doesn't touch history/selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   useEffect(() => {
