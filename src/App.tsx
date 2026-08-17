@@ -6,6 +6,7 @@ import Hero from './Hero.tsx';
 import Navbar from './Navbar.tsx';
 import GetStarted from './GetStarted.tsx';
 import Features from './Features.tsx';
+import Playground from './Playground.tsx';
 
 const App: React.FC = () => {
   return (
@@ -14,6 +15,7 @@ const App: React.FC = () => {
       <Navbar/>
       <Hero/>
       <Features/>
+      <Playground/>
       <GetStarted/>
       <Footer/>
       </div>

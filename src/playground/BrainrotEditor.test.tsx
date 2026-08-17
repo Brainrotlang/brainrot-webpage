@@ -127,3 +127,33 @@ test("an ariaLabel prop change updates the editor's accessible name", () => {
   expect(screen.queryByLabelText("first label")).not.toBeInTheDocument();
   expect(screen.getByLabelText("second label")).toBeInTheDocument();
 });
+
+test("readOnly blocks typing and drops contentEditable, without losing content", async () => {
+  const user = userEvent.setup();
+  const onChange = jest.fn();
+  render(<BrainrotEditor value="rizz x = 1;" onChange={onChange} ariaLabel="editor" readOnly />);
+
+  const content = screen.getByLabelText("editor");
+  expect(content).toHaveAttribute("contenteditable", "false");
+
+  await user.click(content);
+  await user.keyboard("!");
+
+  expect(onChange).not.toHaveBeenCalled();
+  expect(content.textContent).toBe("rizz x = 1;");
+});
+
+test("toggling readOnly off restores editing without recreating the doc", async () => {
+  const user = userEvent.setup();
+  const onChange = jest.fn();
+  const { rerender } = render(<BrainrotEditor value="rizz x = 1;" onChange={onChange} ariaLabel="editor" readOnly />);
+
+  rerender(<BrainrotEditor value="rizz x = 1;" onChange={onChange} ariaLabel="editor" readOnly={false} />);
+
+  const content = screen.getByLabelText("editor");
+  expect(content).toHaveAttribute("contenteditable", "true");
+
+  await user.click(content);
+  await user.keyboard("!");
+  expect(onChange).toHaveBeenCalled();
+});
