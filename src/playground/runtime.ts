@@ -81,14 +81,30 @@ export function runBrainrot(
     // Phase 1: fetching + instantiating the wasm module. A hang here is an
     // infra failure (bad network, broken deploy), not the user's program
     // running long — reported as a rejection, not timedOut:true.
+    //
+    // The deadline fire and the worker's "ready" postMessage are both
+    // ordinary macrotasks racing the same queue: on a load that lands
+    // within a few milliseconds of LOAD_TIMEOUT_MS, the timer can win even
+    // though "ready" was already in flight. Rather than reject the instant
+    // the timer fires, requeue the check one more macrotask out — any
+    // "ready" that was already queued at that point gets processed first
+    // and clears/reschedules `timer`, so the deferred check below then
+    // finds `settled` already handled and does nothing.
     timer = setTimeout(() => {
-      fail(new Error(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
+      setTimeout(() => {
+        if (settled) return;
+        fail(new Error(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
+      }, 0);
     }, LOAD_TIMEOUT_MS);
 
     worker.onmessage = (ev: MessageEvent<WorkerResponse>) => {
       const data = ev.data;
 
       if (data.type === "ready") {
+        // Already settled (e.g. the load-timeout path above won the race
+        // anyway) — the worker is terminated and this message is stale;
+        // do not resurrect it with a fresh execution timer.
+        if (settled) return;
         // Phase 2: the module is up: switch to the caller's execution
         // budget. Only now does an infinite `goon (W) {}` loop start
         // counting against timeoutMs.

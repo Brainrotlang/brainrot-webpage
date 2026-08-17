@@ -150,14 +150,47 @@ test("rejects (not timedOut:true) if the wasm module never signals ready within 
     const worker = mockInstances[0];
 
     // Never send "ready" — simulates a hung/very slow fetch of
-    // brainrot.mjs/brainrot.wasm, as opposed to a slow *program*.
+    // brainrot.mjs/brainrot.wasm, as opposed to a slow *program*. The
+    // actual rejection is deferred one more macrotask past LOAD_TIMEOUT_MS
+    // (see runtime.ts) to give an in-flight "ready" a chance to win a
+    // near-deadline race, so it needs an extra tick advanced here too.
     jest.advanceTimersByTime(15000); // LOAD_TIMEOUT_MS
+    jest.advanceTimersByTime(1); // the deferred re-check
 
     await expect(pending).rejects.toThrow(/timed out loading/i);
     expect(worker.terminated).toBe(true);
   } finally {
     jest.useRealTimers();
   }
+});
+
+test("a late ready after the promise has already settled does not schedule a new timer", async () => {
+  const { runBrainrot } = await importRuntime();
+
+  const pending = runBrainrot("skibidi main { }");
+  await Promise.resolve();
+  const worker = mockInstances[0];
+
+  // Settle via an unrelated error path first — stands in for the
+  // load-timeout race, which is timing-dependent and not practical to
+  // force deterministically here; what matters for this test is just
+  // "already settled" at the point "ready" arrives.
+  worker.onmessage?.({
+    data: { type: "error", message: "boom" },
+  } as MessageEvent<WorkerResponse>);
+  await expect(pending).rejects.toThrow("boom");
+  expect(worker.terminated).toBe(true);
+
+  // A "ready" arriving after settling must be a no-op: no throw, and
+  // critically no fresh execution timer scheduled against an
+  // already-terminated worker (which the earlier, unguarded version of
+  // this handler did).
+  const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+  expect(() =>
+    worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>),
+  ).not.toThrow();
+  expect(setTimeoutSpy).not.toHaveBeenCalled();
+  setTimeoutSpy.mockRestore();
 });
 
 test("rejects when the worker reports an error", async () => {
