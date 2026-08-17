@@ -25,6 +25,18 @@ export interface RunResult {
   timedOut: boolean;
 }
 
+/** Thrown (as the runBrainrot() rejection) specifically when the Brainrot
+ * *runtime itself* failed to load — the wasm module never fetched or
+ * instantiated, or the worker script failed before any of that got a
+ * chance to run. Distinct from a plain Error, which is used for anything
+ * that goes wrong *after* the module was successfully loaded and the
+ * program started executing (a wasm trap, an unexpected abort). That
+ * distinction matters to callers: a load failure is an infrastructure
+ * problem — nothing can run here right now — while a post-load failure is
+ * the *program's* problem and should be presentable like any other run
+ * result, not treated as "the playground is broken." */
+export class RuntimeLoadError extends Error {}
+
 const DEFAULT_TIMEOUT_MS = 5000;
 
 /** Fixed budget for fetching + instantiating the wasm module itself, before
@@ -101,7 +113,7 @@ export function runBrainrot(
     timer = setTimeout(() => {
       setTimeout(() => {
         if (loaded || settled) return;
-        fail(new Error(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
+        fail(new RuntimeLoadError(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
       }, 0);
     }, LOAD_TIMEOUT_MS);
 
@@ -127,7 +139,12 @@ export function runBrainrot(
       }
 
       if (data.type === "error") {
-        fail(new Error(data.message));
+        // Before "ready", this is the module itself failing to fetch or
+        // instantiate — a load failure. After "ready", the module loaded
+        // fine and it's the *program* that crashed (a wasm trap, an
+        // unexpected abort) — that's not a reason to treat the runtime as
+        // unusable.
+        fail(loaded ? new Error(data.message) : new RuntimeLoadError(data.message));
         return;
       }
 
@@ -135,7 +152,13 @@ export function runBrainrot(
     };
 
     worker.onerror = (ev: ErrorEvent) => {
-      fail(new Error(ev.message || "Worker error"));
+      // Same split as the "error" message above: before "ready" this is
+      // the worker script itself failing (e.g. failed to fetch its own
+      // chunk) — a load failure. After "ready", an uncaught exception
+      // escaping the worker (some Emscripten abort/trap paths land here
+      // instead of the async .catch() in wasmWorker.ts) is the *program*
+      // crashing post-load, not the runtime failing to load.
+      fail(loaded ? new Error(ev.message || "Worker error") : new RuntimeLoadError(ev.message || "Worker error"));
     };
 
     const wasmBaseUrl = `${process.env.PUBLIC_URL}/wasm/`;

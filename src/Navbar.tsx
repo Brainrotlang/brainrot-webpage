@@ -5,12 +5,13 @@ const Navbar: React.FC = () => {
     return (
         <div>
             <nav className="bg-gray-800 p-4">
-                <div className="container mx-auto flex justify-between items-center">
+                <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
                     <div className="flex items-center space-x-2">
                         <Terminal className="w-8 h-8" />
                         <span className="text-xl font-bold">Brainrot 🧠</span>
                     </div>
-                    <div className="flex space-x-6">
+                    <div className="flex flex-wrap justify-end gap-x-6 gap-y-2">
+                        <a href="#playground" className="hover:text-purple-400">Playground</a>
                         <a href="https://github.com/Brainrotlang/brainrot/tree/main/docs" className="hover:text-purple-400">Docs</a>
                         <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Community</a>
                         <a

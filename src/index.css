@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Matches Hero.tsx's smooth scrollIntoView() for its Get Started button —
+   applies the same behavior to plain anchor links (Navbar's #playground
+   link) without duplicating imperative scroll code for every link. */
+html {
+  scroll-behavior: smooth;
+}

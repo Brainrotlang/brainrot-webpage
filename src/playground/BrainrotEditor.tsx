@@ -22,10 +22,15 @@ export interface BrainrotEditorProps {
   /** Required, not optional — a code editor with no accessible name is a
    * real gap, not a nice-to-have (#8 requirement: "focusable, labelled"). */
   ariaLabel: string;
+  /** Non-interactive display mode — #9's load-failed degraded state shows
+   * the last-known source this way instead of a dead, editable-looking
+   * box. Defaults to false so every existing usage stays interactive. */
+  readOnly?: boolean;
   className?: string;
 }
 
 const ariaLabelCompartment = new Compartment();
+const readOnlyCompartment = new Compartment();
 
 /**
  * value/onChange are controlled the way any other form input is, but
@@ -50,7 +55,7 @@ const ariaLabelCompartment = new Compartment();
  * false for this path (setState produces an update with no transactions),
  * so no annotation is needed to keep it from re-invoking onChange.
  */
-export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }: BrainrotEditorProps) {
+export function BrainrotEditor({ value, onChange, onRun, ariaLabel, readOnly = false, className }: BrainrotEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -62,7 +67,7 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
   onChangeRef.current = onChange;
   onRunRef.current = onRun;
 
-  const createState = (doc: string, label: string) =>
+  const createState = (doc: string, label: string, readOnlyValue: boolean) =>
     EditorState.create({
       doc,
       extensions: [
@@ -97,6 +102,11 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
         // onChange/onRun, this one isn't read from a ref) can be applied
         // via reconfigure in the effect below without a full state reset.
         ariaLabelCompartment.of(EditorView.contentAttributes.of({ "aria-label": label })),
+        // Both facets: EditorState.readOnly blocks edits at the state
+        // level (so e.g. a stray keymap command can't slip through),
+        // EditorView.editable(false) additionally drops contentEditable
+        // so it doesn't look focusable/interactive when it isn't.
+        readOnlyCompartment.of([EditorState.readOnly.of(readOnlyValue), EditorView.editable.of(!readOnlyValue)]),
       ],
     });
 
@@ -104,18 +114,18 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
     const container = containerRef.current;
     if (!container) return;
 
-    const view = new EditorView({ state: createState(value, ariaLabel), parent: container });
+    const view = new EditorView({ state: createState(value, ariaLabel, readOnly), parent: container });
     viewRef.current = view;
 
     return () => {
       view.destroy();
       viewRef.current = null;
     };
-    // Deliberately empty: the editor is created once per mount. `value`
-    // and `ariaLabel` changes are handled by the sync effects below
-    // instead of recreating the whole editor (which would lose cursor
-    // position/undo history); onChange/onRun changes are picked up via
-    // the refs above.
+    // Deliberately empty: the editor is created once per mount. `value`,
+    // `ariaLabel` and `readOnly` changes are handled by the sync effects
+    // below instead of recreating the whole editor (which would lose
+    // cursor position/undo history); onChange/onRun changes are picked up
+    // via the refs above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -124,12 +134,12 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
     if (!view) return;
     const current = view.state.doc.toString();
     if (current !== value) {
-      view.setState(createState(value, ariaLabel));
+      view.setState(createState(value, ariaLabel, readOnly));
     }
-    // ariaLabel is intentionally not a dependency here: this effect should
-    // only reset state (and clear history) when the *content* changes.
-    // An ariaLabel-only change is handled by the reconfigure effect below,
-    // which doesn't touch history/selection.
+    // ariaLabel/readOnly are intentionally not dependencies here: this
+    // effect should only reset state (and clear history) when the
+    // *content* changes. Prop-only changes are handled by the reconfigure
+    // effects below, which don't touch history/selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
@@ -140,6 +150,17 @@ export function BrainrotEditor({ value, onChange, onRun, ariaLabel, className }:
       effects: ariaLabelCompartment.reconfigure(EditorView.contentAttributes.of({ "aria-label": ariaLabel })),
     });
   }, [ariaLabel]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: readOnlyCompartment.reconfigure([
+        EditorState.readOnly.of(readOnly),
+        EditorView.editable.of(!readOnly),
+      ]),
+    });
+  }, [readOnly]);
 
   return <div ref={containerRef} className={className} data-testid="brainrot-editor" />;
 }
