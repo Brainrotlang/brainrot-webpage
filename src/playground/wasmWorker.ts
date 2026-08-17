@@ -25,6 +25,13 @@ export interface WorkerRequest {
    * e.g. `${process.env.PUBLIC_URL}/wasm/`. Passed in by the caller rather
    * than hardcoded here, since PUBLIC_URL is only known on the main thread. */
   wasmBaseUrl: string;
+  /** BRAINROT_WASM_VERSION (src/wasmVersion.json) — appended as a `?v=`
+   * cache-buster to every wasm asset URL. public/wasm/brainrot.wasm and
+   * brainrot.mjs keep the exact same filename across releases (CRA serves
+   * public/ files unhashed), so without this a returning visitor's browser
+   * can keep serving a stale cached interpreter after a version bump,
+   * indefinitely, regardless of what the deployed pin says. */
+  wasmVersion: string;
 }
 
 export type WorkerResponse =
@@ -44,7 +51,8 @@ interface WorkerGlobal {
 const workerSelf = self as unknown as WorkerGlobal;
 
 workerSelf.onmessage = (ev) => {
-  const { source, stdin, wasmBaseUrl } = ev.data;
+  const { source, stdin, wasmBaseUrl, wasmVersion } = ev.data;
+  const cacheBust = `?v=${encodeURIComponent(wasmVersion)}`;
 
   (async () => {
     // Emscripten's ES6/MODULARIZE output resolves the .wasm binary
@@ -54,11 +62,12 @@ workerSelf.onmessage = (ev) => {
     // actual wasm/ directory explicitly so this doesn't silently break
     // depending on where webpack ends up serving this worker bundle from.
     const overrides: BrainrotModuleOverrides & { locateFile: (path: string) => string } = {
-      locateFile: (path: string) => wasmBaseUrl + path,
+      locateFile: (path: string) => wasmBaseUrl + path + cacheBust,
     };
 
-    const createBrainrotModule = (await import(/* webpackIgnore: true */ wasmBaseUrl + "brainrot.mjs"))
-      .default;
+    const createBrainrotModule = (
+      await import(/* webpackIgnore: true */ wasmBaseUrl + "brainrot.mjs" + cacheBust)
+    ).default;
 
     const wrappedFactory = (o: BrainrotModuleOverrides) =>
       createBrainrotModule({ ...o, ...overrides });

@@ -85,7 +85,7 @@ export function runBrainrot(
     };
 
     const wasmBaseUrl = `${process.env.PUBLIC_URL}/wasm/`;
-    const request: WorkerRequest = { source, stdin, wasmBaseUrl };
+    const request: WorkerRequest = { source, stdin, wasmBaseUrl, wasmVersion: BRAINROT_WASM_VERSION };
     worker.postMessage(request);
   });
 }

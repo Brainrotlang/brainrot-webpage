@@ -12,7 +12,7 @@
 // never drift apart.
 //
 // Usage: node scripts/fetch-wasm.mjs [--force]
-//   --force  re-download even if public/wasm/ already has both files
+//   --force  re-download even if public/wasm/ already matches the pin
 
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -22,16 +22,25 @@ import path from "node:path";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(repoRoot, "public", "wasm");
 const files = ["brainrot.wasm", "brainrot.mjs"];
+// Stamped with the fetched version after a successful download, so a
+// bumped src/wasmVersion.json is actually noticed instead of silently
+// reusing whatever was already sitting in public/wasm/ from a prior pin.
+const stampFile = path.join(outDir, ".version");
 
 const { version } = JSON.parse(readFileSync(path.join(repoRoot, "src", "wasmVersion.json"), "utf8"));
 const baseUrl = `https://github.com/Brainrotlang/brainrot/releases/download/${version}/`;
 
 const force = process.argv.includes("--force");
-const alreadyPresent = files.every((f) => existsSync(path.join(outDir, f)));
+const filesPresent = files.every((f) => existsSync(path.join(outDir, f)));
+const stampedVersion = existsSync(stampFile) ? readFileSync(stampFile, "utf8").trim() : null;
 
-if (alreadyPresent && !force) {
-  console.log(`public/wasm/ already has ${files.join(", ")} — skipping fetch. Use --force to re-download.`);
+if (filesPresent && stampedVersion === version && !force) {
+  console.log(`public/wasm/ already has ${version} — skipping fetch. Use --force to re-download.`);
   process.exit(0);
+}
+
+if (filesPresent && stampedVersion !== version) {
+  console.log(`public/wasm/ has ${stampedVersion ?? "an unstamped build"}, pin is now ${version} — re-fetching.`);
 }
 
 await mkdir(outDir, { recursive: true });
@@ -51,5 +60,9 @@ for (const file of files) {
   await writeFile(path.join(outDir, file), bytes);
   console.log(`  wrote public/wasm/${file} (${bytes.length} bytes)`);
 }
+
+// Written last, only once every file above succeeded — a failed fetch
+// must not leave a stamp claiming this version is ready.
+await writeFile(stampFile, version);
 
 console.log(`Done — brainrot ${version} ready in public/wasm/`);

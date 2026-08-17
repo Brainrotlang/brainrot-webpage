@@ -87,7 +87,12 @@ test("passes source/stdin through to the worker", async () => {
   const worker = mockInstances[0];
 
   expect(worker.postedMessages).toEqual([
-    { source: "rizz x;", stdin: "42\n", wasmBaseUrl: expect.stringMatching(/\/wasm\/$/) },
+    {
+      source: "rizz x;",
+      stdin: "42\n",
+      wasmBaseUrl: expect.stringMatching(/\/wasm\/$/),
+      wasmVersion: expect.any(String),
+    },
   ]);
 
   worker.onmessage?.({
