@@ -62,11 +62,18 @@ function isExitStatus(e: unknown): e is { status: number } {
  * correctness bug, not just untidiness. Callers must pass a fresh
  * `createBrainrotModule` factory invocation per call; this function does
  * not cache or reuse anything across calls.
+ *
+ * @param onReady Fires once the module has been fetched and instantiated,
+ * immediately before the program starts executing — lets a caller (see
+ * wasmWorker.ts) distinguish "still downloading/instantiating the wasm
+ * module" from "the Brainrot program itself is taking a while", since
+ * those need very different timeout budgets and failure handling.
  */
 export async function runInModule(
   createBrainrotModule: CreateBrainrotModule,
   source: string,
   stdin: string = "",
+  onReady?: () => void,
 ): Promise<RunResult> {
   const stdoutChunks: string[] = [];
   const stderrChunks: string[] = [];
@@ -78,6 +85,8 @@ export async function runInModule(
     stdin: () => (stdinPos < stdin.length ? stdin.charCodeAt(stdinPos++) : null),
     noInitialRun: true,
   });
+
+  onReady?.();
 
   mod.FS.writeFile("/prog.brainrot", source);
 

@@ -15,7 +15,7 @@
 //   --force  re-download even if public/wasm/ already matches the pin
 
 import { existsSync, readFileSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, rename, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -45,6 +45,18 @@ if (filesPresent && stampedVersion !== version) {
 
 await mkdir(outDir, { recursive: true });
 
+// Delete the stamp before touching any artifact. Otherwise a --force
+// re-fetch of the *same already-stamped* version — e.g. to repair local
+// corruption — that gets interrupted after replacing one file but before
+// the other would leave a mismatched wasm/mjs pair with a stamp that
+// still (truthfully, as far as it knows) says "this version is ready".
+// The next run would then see files present + stamp matching and skip,
+// keeping the broken pair indefinitely. With the stamp gone up front, an
+// interruption at any point leaves this run's next attempt seeing
+// "unstamped" and re-fetching both files fully rather than trusting a
+// partially-updated directory.
+await rm(stampFile, { force: true });
+
 for (const file of files) {
   const url = baseUrl + file;
   console.log(`Fetching ${url} ...`);
@@ -57,7 +69,14 @@ for (const file of files) {
     process.exit(1);
   }
   const bytes = Buffer.from(await res.arrayBuffer());
-  await writeFile(path.join(outDir, file), bytes);
+  // Write to a temp path and rename into place (atomic on the same
+  // filesystem/directory) rather than writing the real filename directly
+  // — a process kill or write error mid-download must never leave a
+  // truncated/partial file visible under the real name.
+  const finalPath = path.join(outDir, file);
+  const tmpPath = `${finalPath}.tmp`;
+  await writeFile(tmpPath, bytes);
+  await rename(tmpPath, finalPath);
   console.log(`  wrote public/wasm/${file} (${bytes.length} bytes)`);
 }
 

@@ -101,30 +101,63 @@ test("passes source/stdin through to the worker", async () => {
   await pending;
 });
 
-test("terminates the worker and resolves timedOut:true when the deadline passes", async () => {
+test("terminates the worker and resolves timedOut:true when the execution deadline passes", async () => {
   const { runBrainrot } = await importRuntime();
 
-  // Never respond — this is exactly what an infinite `goon (W) {}` loop
-  // looks like from the caller's side: no message ever arrives.
-  const result = await runBrainrot("goon (W) { }", "", 20);
+  const pending = runBrainrot("goon (W) { }", "", 20);
+  await Promise.resolve();
+  const worker = mockInstances[0];
 
+  // Module loads fine; the program itself just never finishes — exactly
+  // what an infinite `goon (W) {}` loop looks like from the caller's side.
+  // Only after "ready" does the short 20ms execution budget start —
+  // without this the 15s load budget would be what's counting down, and
+  // this test would need to wait 15 real seconds to see anything happen.
+  worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>);
+
+  const result = await pending;
   expect(result).toEqual({ stdout: "", stderr: "", exitCode: -1, timedOut: true });
-  expect(mockInstances[0].terminated).toBe(true);
+  expect(worker.terminated).toBe(true);
 });
 
-test("a late worker response after timeout does not resolve twice", async () => {
+test("a late worker response after the execution timeout does not resolve twice", async () => {
   const { runBrainrot } = await importRuntime();
 
-  const result = await runBrainrot("goon (W) { }", "", 20);
+  const pending = runBrainrot("goon (W) { }", "", 20);
+  await Promise.resolve();
+  const worker = mockInstances[0];
+  worker.onmessage?.({ data: { type: "ready" } } as MessageEvent<WorkerResponse>);
+
+  const result = await pending;
   expect(result.timedOut).toBe(true);
 
   // Simulate a stray message arriving after termination — must not throw
   // or change the already-settled result.
   expect(() =>
-    mockInstances[0].onmessage?.({
+    worker.onmessage?.({
       data: { type: "result", stdout: "late\n", stderr: "", exitCode: 0 },
     } as MessageEvent<WorkerResponse>),
   ).not.toThrow();
+});
+
+test("rejects (not timedOut:true) if the wasm module never signals ready within the load budget", async () => {
+  jest.useFakeTimers();
+  try {
+    const { runBrainrot } = await importRuntime();
+
+    const pending = runBrainrot("skibidi main { }");
+    await Promise.resolve();
+    const worker = mockInstances[0];
+
+    // Never send "ready" — simulates a hung/very slow fetch of
+    // brainrot.mjs/brainrot.wasm, as opposed to a slow *program*.
+    jest.advanceTimersByTime(15000); // LOAD_TIMEOUT_MS
+
+    await expect(pending).rejects.toThrow(/timed out loading/i);
+    expect(worker.terminated).toBe(true);
+  } finally {
+    jest.useRealTimers();
+  }
 });
 
 test("rejects when the worker reports an error", async () => {

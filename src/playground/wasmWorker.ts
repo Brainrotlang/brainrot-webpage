@@ -35,6 +35,11 @@ export interface WorkerRequest {
 }
 
 export type WorkerResponse =
+  /** The wasm module has been fetched and instantiated; the program is
+   * about to start executing. Lets the caller stop counting "still
+   * downloading the interpreter" against the program's own execution
+   * timeout budget. */
+  | { type: "ready" }
   | ({ type: "result" } & RunResult)
   | { type: "error"; message: string };
 
@@ -72,7 +77,9 @@ workerSelf.onmessage = (ev) => {
     const wrappedFactory = (o: BrainrotModuleOverrides) =>
       createBrainrotModule({ ...o, ...overrides });
 
-    const result = await runInModule(wrappedFactory, source, stdin);
+    const result = await runInModule(wrappedFactory, source, stdin, () => {
+      workerSelf.postMessage({ type: "ready" });
+    });
     workerSelf.postMessage({ type: "result", ...result });
   })().catch((e: unknown) => {
     const message = e instanceof Error ? e.message : String(e);

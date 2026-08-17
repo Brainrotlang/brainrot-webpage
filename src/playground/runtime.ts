@@ -27,6 +27,16 @@ export interface RunResult {
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
+/** Fixed budget for fetching + instantiating the wasm module itself, before
+ * the program starts executing — deliberately not part of `timeoutMs`
+ * (which is a budget for the *program*, e.g. catching an infinite `goon
+ * (W) {}` loop) and not caller-configurable, since load time is an
+ * infrastructure concern, not something a playground user's code
+ * controls. A slow network/cold cache burning through timeoutMs would
+ * otherwise misreport a perfectly fine, finite program as timedOut:true,
+ * and indistinguishably from an actually-hung download. */
+const LOAD_TIMEOUT_MS = 15000;
+
 /** The Brainrotlang/brainrot release this playground is pinned to. Read
  * from src/wasmVersion.json — the single place this version lives, also
  * read by scripts/fetch-wasm.mjs at build time (a plain Node script can't
@@ -50,6 +60,7 @@ export function runBrainrot(
     const worker = createWasmWorker();
 
     let settled = false;
+    let timer: ReturnType<typeof setTimeout>;
 
     const finish = (result: RunResult) => {
       if (settled) return;
@@ -67,16 +78,32 @@ export function runBrainrot(
       reject(error);
     };
 
-    const timer = setTimeout(() => {
-      finish({ stdout: "", stderr: "", exitCode: -1, timedOut: true });
-    }, timeoutMs);
+    // Phase 1: fetching + instantiating the wasm module. A hang here is an
+    // infra failure (bad network, broken deploy), not the user's program
+    // running long — reported as a rejection, not timedOut:true.
+    timer = setTimeout(() => {
+      fail(new Error(`Timed out loading the Brainrot runtime (no response after ${LOAD_TIMEOUT_MS}ms)`));
+    }, LOAD_TIMEOUT_MS);
 
     worker.onmessage = (ev: MessageEvent<WorkerResponse>) => {
       const data = ev.data;
+
+      if (data.type === "ready") {
+        // Phase 2: the module is up: switch to the caller's execution
+        // budget. Only now does an infinite `goon (W) {}` loop start
+        // counting against timeoutMs.
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          finish({ stdout: "", stderr: "", exitCode: -1, timedOut: true });
+        }, timeoutMs);
+        return;
+      }
+
       if (data.type === "error") {
         fail(new Error(data.message));
         return;
       }
+
       finish({ stdout: data.stdout, stderr: data.stderr, exitCode: data.exitCode, timedOut: false });
     };
 
