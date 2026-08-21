@@ -55,8 +55,8 @@ export const PLAYGROUND_EXAMPLES: PlaygroundExample[] = [
     source: `skibidi main {
     yap name[32];
     yapping("Yo, what's the name, chief?");
-    rant string = slorp(name);
-    yapping("%s? Certified W rizz fr fr.", string);
+    name = slorp();
+    yapping("%s? Certified W rizz fr fr.", name);
     bussin 0;
 }
 `,
