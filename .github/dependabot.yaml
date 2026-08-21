@@ -1,5 +1,7 @@
-  - package-ecosystem: "npm"  # 'npm' works for both npm and Yarn projects
-    directory: "/"  # Path to where your `package.json` and `yarn.lock` are located
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
     labels:
