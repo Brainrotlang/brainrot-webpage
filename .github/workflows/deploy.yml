@@ -41,9 +41,7 @@ jobs:
           cmd: fetch-wasm
 
       - name: Build production bundle
-        uses: borales/actions-yarn@v5
-        with:
-          cmd: build
+        run: yarn build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
