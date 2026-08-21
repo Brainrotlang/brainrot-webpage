@@ -62,7 +62,7 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@typescript-eslint/parser": "^8.18.2",
+    "@typescript-eslint/parser": "^8.67.0",
     "autoprefixer": "^10.4.20",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "postcss": "^8.4.49",
