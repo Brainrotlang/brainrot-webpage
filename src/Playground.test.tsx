@@ -199,7 +199,7 @@ test("Reset restores the selected example's original source after edits", async 
 
   const editor = screen.getByLabelText("Brainrot code editor");
   await user.click(editor);
-  await user.keyboard("// scribble");
+  await user.paste("// scribble");
   expect(editor.textContent).toContain("scribble");
 
   await user.click(screen.getByRole("button", { name: /reset/i }));
