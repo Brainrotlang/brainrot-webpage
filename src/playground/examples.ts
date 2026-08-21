@@ -54,8 +54,9 @@ export const PLAYGROUND_EXAMPLES: PlaygroundExample[] = [
     label: "Rate My Rizz (slorp)",
     source: `skibidi main {
     yap name[32];
+    yapping("Yo, what's the name, chief?");
     slorp(name);
-    yapping("hello %s", name);
+    yapping("%s? Certified W rizz fr fr.", name);
     bussin 0;
 }
 `,
