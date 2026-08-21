@@ -214,7 +214,7 @@ test("switching the examples dropdown loads that example's source and stdin", as
 
   await user.selectOptions(screen.getByLabelText("Examples:"), "Rate My Rizz (slorp)");
 
-  expect(screen.getByLabelText("Brainrot code editor").textContent).toContain("slorp(name)");
+  expect(screen.getByLabelText("Brainrot code editor").textContent).toContain("slorp()");
 
   await user.click(screen.getByText("stdin (optional)"));
   expect(screen.getByLabelText("Program stdin")).toHaveValue("Chad\n");
