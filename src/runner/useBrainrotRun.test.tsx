@@ -36,10 +36,40 @@ test("a completed run carries the result through, stdin included", async () => {
   mockRunBrainrot.mockResolvedValue(ok);
   const { result } = renderHook(() => useBrainrotRun());
 
-  act(() => result.current.run("skibidi main { }", "42\n"));
+  act(() => {
+    void result.current.run("skibidi main { }", "42\n");
+  });
 
   await waitFor(() => expect(result.current.runState).toEqual({ status: "result", result: ok }));
   expect(mockRunBrainrot).toHaveBeenCalledWith("skibidi main { }", "42\n");
+});
+
+test("run() resolves with the result of the run it started", async () => {
+  // What Check depends on: the caller needs *its* run's result, not
+  // whatever state happens to be current by the time it looks.
+  mockRunBrainrot.mockResolvedValue(ok);
+  const { result } = renderHook(() => useBrainrotRun());
+
+  let resolved: RunResult | null = null;
+  await act(async () => {
+    resolved = await result.current.run("program");
+  });
+
+  expect(resolved).toEqual(ok);
+});
+
+test("run() resolves null when there is no result to judge", async () => {
+  mockRunBrainrot.mockRejectedValue(new RuntimeLoadError("no runtime"));
+  const { result } = renderHook(() => useBrainrotRun());
+
+  let resolved: RunResult | null = ok;
+  await act(async () => {
+    resolved = await result.current.run("program");
+  });
+
+  // A load failure is not a verdict on the program, so a caller must not be
+  // handed something that looks like one.
+  expect(resolved).toBeNull();
 });
 
 test("a second run in the same tick is refused, so one keypress can't spawn two workers", async () => {
@@ -48,8 +78,8 @@ test("a second run in the same tick is refused, so one keypress can't spawn two 
   const { result } = renderHook(() => useBrainrotRun());
 
   act(() => {
-    result.current.run("a");
-    result.current.run("b");
+    void result.current.run("a");
+    void result.current.run("b");
   });
 
   expect(mockRunBrainrot).toHaveBeenCalledTimes(1);
@@ -66,7 +96,9 @@ test("reset() during a run discards that run's result instead of repainting late
   mockRunBrainrot.mockReturnValue(promise);
   const { result } = renderHook(() => useBrainrotRun());
 
-  act(() => result.current.run("slow program"));
+  act(() => {
+    void result.current.run("slow program");
+  });
   expect(result.current.isRunning).toBe(true);
 
   act(() => result.current.reset());
@@ -86,7 +118,9 @@ test("a RuntimeLoadError disables running entirely — it is not just another re
   mockRunBrainrot.mockRejectedValue(new RuntimeLoadError("no runtime for you"));
   const { result } = renderHook(() => useBrainrotRun());
 
-  act(() => result.current.run("anything"));
+  act(() => {
+    void result.current.run("anything");
+  });
 
   await waitFor(() => expect(result.current.isLoadFailed).toBe(true));
   expect(result.current.runState).toEqual({ status: "loadFailed", message: "no runtime for you" });
@@ -94,7 +128,9 @@ test("a RuntimeLoadError disables running entirely — it is not just another re
   // Nothing can run here now, so a caller that still offers Run (or a
   // Cmd/Ctrl+Enter keymap that never knew) must not reach the runtime.
   mockRunBrainrot.mockClear();
-  act(() => result.current.run("try again"));
+  act(() => {
+    void result.current.run("try again");
+  });
   expect(mockRunBrainrot).not.toHaveBeenCalled();
 });
 
@@ -102,7 +138,9 @@ test("a crash after the runtime loaded is shown as a failed run, leaving the sur
   mockRunBrainrot.mockRejectedValue(new Error("unreachable executed"));
   const { result } = renderHook(() => useBrainrotRun());
 
-  act(() => result.current.run("bad program"));
+  act(() => {
+    void result.current.run("bad program");
+  });
 
   await waitFor(() =>
     expect(result.current.runState).toEqual({
@@ -113,7 +151,9 @@ test("a crash after the runtime loaded is shown as a failed run, leaving the sur
   expect(result.current.isLoadFailed).toBe(false);
 
   mockRunBrainrot.mockResolvedValue(ok);
-  act(() => result.current.run("good program"));
+  act(() => {
+    void result.current.run("good program");
+  });
   await waitFor(() => expect(result.current.runState).toEqual({ status: "result", result: ok }));
 });
 
@@ -121,7 +161,9 @@ test("a non-Error rejection still produces a readable result rather than [object
   mockRunBrainrot.mockRejectedValue("worker died");
   const { result } = renderHook(() => useBrainrotRun());
 
-  act(() => result.current.run("whatever"));
+  act(() => {
+    void result.current.run("whatever");
+  });
 
   await waitFor(() =>
     expect(result.current.runState).toEqual({

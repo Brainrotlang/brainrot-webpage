@@ -77,6 +77,16 @@ src/
     OutputPane.tsx              stdout/stderr/exit code/timeout rendering
     RunControls.tsx             Run + Reset, with a slot for surface-specific controls
     StdinPanel.tsx              the stdin disclosure and its per-surface preference
+  tour/                         the guided tour (/tour), lazily loaded
+    types.ts                    lesson/chapter shapes; the unions that keep
+                                unverifiable exercises from compiling
+    content/                    the manifest: chapters, order, prose (TSX)
+    programs/                   lesson programs (CommonJS — read by both the
+                                app and plain Node; see below)
+    progress.ts                 localStorage progress, best-effort throughout
+    check.ts                    exercise verdicts (behavioural comparison)
+    Tour.tsx                    routes + progress/draft state for the subtree
+    TourLanding/TourLesson/TourSidebar.tsx
   playground/
     runtime.ts                  public API: runBrainrot(); owns the timeout watchdog
     createWasmWorker.ts         Worker construction, isolated so Jest can mock it
@@ -134,6 +144,25 @@ Four constraints hold this design together. Each of them was a bug once.
    one place that branches on it, mapping the first to `loadFailed` and the
    second to an ordinary `result`; UI code consumes `RunState` and should
    not re-derive the distinction.
+
+## Tour content — two rules that are not obvious
+
+**Lesson programs live in CommonJS `.js`, not TypeScript.** They have two
+readers: the app (via `src/tour/content`, where TypeScript checks their shape
+against `src/tour/types.ts`) and plain Node, which cannot run TypeScript and
+has no `"type": "module"` here to make ESM `.js` work. CommonJS is the one
+form both can read, so there is exactly one copy of every program and no
+build step. Do not add JSDoc `@type` annotations to them: the *inferred*
+literal shape is what the TypeScript side checks against `DemoProgram` /
+`ExerciseProgram`, and declaring the type in the JS file makes that check
+vacuous.
+
+**Every `expect` must come from running the program, never from predicting
+it.** The pinned interpreter rejects plenty of syntax the upstream docs
+describe, and accepts things with surprising results — `based` is the
+`default` keyword, so `cap based = W;` is a syntax error rather than a
+variable named `based`. Write the program, run it against
+`public/wasm/brainrot.mjs`, and record what actually came out.
 
 Also: `wasmVersion.json` is the only place the Brainrot version is pinned.
 `runtime.ts` imports it, `scripts/fetch-wasm.mjs` reads it off disk (a plain
