@@ -60,8 +60,10 @@ the Docker image. Change one, check the other.
 The app also has client-side routes, so a host that serves a deep URL as a
 missing file breaks refreshes and shared links. `nginx.conf` handles it with
 `try_files`; CloudFront needs custom error responses mapping 403 and 404 to
-`/index.html`, configured once per distribution outside this repository — see
-`README.md`. No test in this repo can catch a regression there — verify by
+`/index.html`, applied once per distribution with
+`make cloudfront-spa DISTRIBUTION_ID=... [AWS_PROFILE=...]`
+(`scripts/configure-cloudfront-spa.sh`). No test in this repo can catch a
+regression there — verify by
 requesting a deep route directly, since clicking through to one never leaves
 the SPA and so never exercises the fallback.
 

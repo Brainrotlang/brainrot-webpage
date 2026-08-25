@@ -67,8 +67,16 @@ refreshes a page or opens a shared link.
   `s3:ListBucket` and `404` when it has it, so map both rather than guessing
   which one this distribution produces.
 
-  This is a one-time change per distribution, done outside this repository.
-  In the console: **CloudFront → your distribution → Error pages → Create
+  This is a one-time change per distribution. Either run:
+
+  ```bash
+  # AWS_PROFILE is optional; without it the CLI resolves credentials as usual
+  DISTRIBUTION_ID=E2QWERTY123ABC AWS_PROFILE=personal make cloudfront-spa
+  ```
+
+  which is idempotent, keeps any other error responses already configured,
+  and takes `DRY_RUN=1` to show the change without applying it. Or do it in
+  the console: **CloudFront → your distribution → Error pages → Create
   custom error response**, once for each code, with response page
   `/index.html`, HTTP response code `200`, and a minimum TTL of `10` so a
   genuine origin problem is not cached for the default five minutes.
