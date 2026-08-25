@@ -57,7 +57,7 @@ const CONTROL_KEYWORDS = new Set([
   "main",
 ]);
 
-const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "whopper", "maxxing"]);
+const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "whopper", "maxxing", "lit"]);
 
 const BOOLEAN_LITERALS = new Set(["W", "L"]);
 
