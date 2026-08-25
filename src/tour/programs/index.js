@@ -11,4 +11,5 @@
 module.exports = {
   "using-the-tour": require("./usingTheTour"),
   basics: require("./basics"),
+  "control-flow": require("./controlFlow"),
 };

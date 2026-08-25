@@ -9,9 +9,10 @@ import type { ResolvedLesson, TourChapter } from "../types";
 import { lessonId } from "../types";
 import { usingTheTourChapter } from "./usingTheTour";
 import { basicsChapter } from "./basics";
+import { controlFlowChapter } from "./controlFlow";
 
 /** Curriculum order. This array *is* the tour's table of contents. */
-export const CHAPTERS: readonly TourChapter[] = [usingTheTourChapter, basicsChapter];
+export const CHAPTERS: readonly TourChapter[] = [usingTheTourChapter, basicsChapter, controlFlowChapter];
 
 /**
  * Flattened once at module load. Everything else indexes into this, so

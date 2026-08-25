@@ -125,8 +125,14 @@ describe("sidebar", () => {
     await renderTourAt(`/tour/${WELCOME}`);
 
     const nav = screen.getAllByRole("navigation", { name: /tour contents/i })[0];
-    for (const { lesson } of allLessons()) {
-      expect(within(nav).getByRole("link", { name: new RegExp(lesson.title, "i") })).toBeInTheDocument();
+
+    // By href rather than by title: lesson titles legitimately overlap
+    // ("edgy" and "edgy / amogus"), while ids are unique by construction.
+    const hrefs = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    for (const { id } of allLessons()) {
+      expect(hrefs).toContain(`/tour/${id}`);
     }
 
     const current = within(nav).getByRole("link", { name: /welcome to brainrot/i });
