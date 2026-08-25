@@ -62,20 +62,16 @@ refreshes a page or opens a shared link.
 - **nginx / the Docker image**: already handled by `try_files $uri $uri/
   /index.html;` in `nginx.conf`.
 - **S3 + CloudFront**: the distribution needs custom error responses mapping
-  `403` and `404` to `/index.html` with response code `200`. An S3 REST
+  `403` **and** `404` to `/index.html` with response code `200`. An S3 REST
   origin answers a missing key with `403` when the origin identity lacks
-  `s3:ListBucket` and `404` when it has it, so both are mapped rather than
-  guessing which. Run this once per distribution:
+  `s3:ListBucket` and `404` when it has it, so map both rather than guessing
+  which one this distribution produces.
 
-  ```bash
-  DISTRIBUTION_ID=E123456789ABC make cloudfront-spa
-  ```
-
-  It is idempotent, preserves any other error responses already configured,
-  and `DRY_RUN=1` shows the change without applying it. Doing it by hand in
-  the console works too: **CloudFront → your distribution → Error pages →
-  Create custom error response**, once for `403` and once for `404`, each
-  with response page `/index.html` and HTTP response code `200`.
+  This is a one-time change per distribution, done outside this repository.
+  In the console: **CloudFront → your distribution → Error pages → Create
+  custom error response**, once for each code, with response page
+  `/index.html`, HTTP response code `200`, and a minimum TTL of `10` so a
+  genuine origin problem is not cached for the default five minutes.
 
   The tradeoff: CloudFront can then no longer distinguish a mistyped route
   from a genuinely missing asset, so an absent `/static/js/typo.js` also
