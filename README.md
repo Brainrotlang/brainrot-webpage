@@ -61,12 +61,27 @@ refreshes a page or opens a shared link.
 
 - **nginx / the Docker image**: already handled by `try_files $uri $uri/
   /index.html;` in `nginx.conf`.
-- **S3 + CloudFront**: **not configurable from this repository.** An S3 REST
-  origin answers a missing key with `403`, so the distribution needs custom
-  error responses mapping `403` (and `404`) to `/index.html` with response
-  code `200`, or an equivalent CloudFront Function. `scripts/deploy-s3.sh`
-  and `.github/workflows/deploy.yml` upload the right objects with the right
-  headers; neither can create that behaviour.
+- **S3 + CloudFront**: the distribution needs custom error responses mapping
+  `403` and `404` to `/index.html` with response code `200`. An S3 REST
+  origin answers a missing key with `403` when the origin identity lacks
+  `s3:ListBucket` and `404` when it has it, so both are mapped rather than
+  guessing which. Run this once per distribution:
+
+  ```bash
+  DISTRIBUTION_ID=E123456789ABC make cloudfront-spa
+  ```
+
+  It is idempotent, preserves any other error responses already configured,
+  and `DRY_RUN=1` shows the change without applying it. Doing it by hand in
+  the console works too: **CloudFront → your distribution → Error pages →
+  Create custom error response**, once for `403` and once for `404`, each
+  with response page `/index.html` and HTTP response code `200`.
+
+  The tradeoff: CloudFront can then no longer distinguish a mistyped route
+  from a genuinely missing asset, so an absent `/static/js/typo.js` also
+  returns `index.html` with a `200`. That is the normal SPA arrangement — the
+  app owns its own 404 page. Swap in a CloudFront Function rewriting only
+  extensionless paths if that ever becomes a problem.
 
 Verify after any hosting change by requesting a deep route directly rather
 than clicking through to it — clicking never leaves the SPA and so never
