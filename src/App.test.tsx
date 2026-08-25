@@ -55,6 +55,26 @@ test("the navbar's Playground link is absolute, so it works from a non-root rout
   expect(screen.getByRole("link", { name: /playground/i })).toHaveAttribute("href", "/#playground");
 });
 
+test("the navbar offers the tour alongside the reference docs", () => {
+  renderAt("/");
+
+  // Tour teaches the language, Docs is for looking it up — both, not either.
+  expect(screen.getByRole("link", { name: /^tour$/i })).toHaveAttribute("href", "/tour");
+  expect(screen.getByRole("link", { name: /^docs$/i })).toHaveAttribute(
+    "href",
+    "https://github.com/Brainrotlang/brainrot/tree/main/docs",
+  );
+});
+
+test("the homepage leads with the tour", () => {
+  renderAt("/");
+
+  const cta = screen.getByRole("link", { name: /take the tour/i });
+  expect(cta).toHaveAttribute("href", "/tour");
+  // Still reachable for someone who came to install the compiler.
+  expect(screen.getByRole("button", { name: /get started/i })).toBeInTheDocument();
+});
+
 test("navigating to a hash target scrolls it into view", async () => {
   const user = userEvent.setup();
   const scrollIntoView = jest.fn();

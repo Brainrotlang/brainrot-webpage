@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { LESSON_COUNT } from "./tour/lessonCount";
 
 const Hero: React.FC = () => {
     return (
@@ -9,9 +11,17 @@ const Hero: React.FC = () => {
             The most bussin' programming language that'll have your code
             absolutely based! 🗿
           </p>
-          <div className="space-x-4">
-            <button 
-            className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg"
+          <div className="flex flex-wrap justify-center items-center gap-4">
+            {/* The tour is the better first click for anyone who has not met
+                the language yet, so it leads. */}
+            <Link
+              to="/tour"
+              className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold"
+            >
+              Take the Tour 🧠
+            </Link>
+            <button
+            className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg"
             onClick={() => {
                 const section = document.getElementById("get-started-section");
                 section?.scrollIntoView({ behavior: "smooth" });
@@ -20,9 +30,12 @@ const Hero: React.FC = () => {
               Get Started
             </button>
           </div>
+          <p className="text-sm text-gray-400 mt-4">
+            {LESSON_COUNT} lessons, all runnable in this tab. Nothing to install.
+          </p>
         </div>
       </div>
     );
  };
-    
+
 export default Hero;

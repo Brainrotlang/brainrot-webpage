@@ -2,6 +2,7 @@ import { CHAPTERS, FIRST_LESSON_ID, LESSON_COUNT, allLessons, findLesson, isLess
 import programs from "../programs";
 import claims from "../programs/claims";
 import { LIMITATIONS } from "../limitations";
+import { LESSON_COUNT as ADVERTISED_LESSON_COUNT } from "../lessonCount";
 import { runnableProgram } from "../types";
 
 test("lesson ids are unique", () => {
@@ -88,6 +89,13 @@ test("every claim is attached to a lesson that exists", () => {
 
   const unexplained = claimEntries.filter(([, claim]) => claim.claim.trim() === "").map(([id]) => id);
   expect(unexplained).toEqual([]);
+});
+
+test("the homepage's advertised lesson count matches the curriculum", () => {
+  // Hero.tsx cannot import the manifest without pulling the whole curriculum
+  // into the main bundle, so it carries the number instead. This is what keeps
+  // that number true.
+  expect(ADVERTISED_LESSON_COUNT).toBe(LESSON_COUNT);
 });
 
 test("the limitations page lists exactly the claims marked as limitations", () => {
