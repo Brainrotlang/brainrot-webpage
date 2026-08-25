@@ -377,16 +377,28 @@ must state why on the page.
 ## 7. What the pinned interpreter actually does
 
 Measured by running candidate lesson programs through `public/wasm/brainrot.mjs`
-at `v0.1.5` in Node, the same way `scripts/verify-wasm-runtime.mjs` does. **The
-issue and the upstream docs both assume features that do not exist.** This
-section is the reason §4 is not optional.
+in Node, the same way `scripts/verify-wasm-runtime.mjs` does. **The issue and
+the upstream docs both assume features that do not exist.** This section is the
+reason §4 is not optional.
+
+> **Re-measured at `v0.1.6`.** Two things changed since this was first written
+> against `v0.1.5`: `lit` now works, and a function may now take a struct *and*
+> return one. Both had been listed as blockers below and are struck through
+> accordingly. Everything else in §7.1 and §7.2 was re-run and still holds —
+> including `!`, which is still a no-op. `§7.4` collects what re-measuring
+> turned up that had not been tested before.
+>
+> The lesson from that bump: nothing had been verifying the *negative* claims.
+> `lit` went from "parse error" to fully working with no test noticing, which is
+> why `src/tour/programs/claims.js` now exists — every "does not work in this
+> release" warning in a lesson is backed by a program CI runs.
 
 ### 7.1 Issue items that cannot ship as written
 
 | Issue item | Reality at v0.1.5 |
 | --- | --- |
 | §2.7 `grind` (continue) | Parse error in every form tried (inside `flex`, inside `goon`, bare, braced): `syntax error, unexpected CONTINUE`. Lexed but not implemented. |
-| §6.8 `lit` (typedef) | Parse error. Not in `lang.l` at all — and `brainrotLanguage.ts` already documents that `lit` was never a real keyword. The upstream keyword table lists it anyway. |
+| ~~§6.8 `lit` (typedef)~~ | **Fixed in v0.1.6.** Works for primitives, `gang`/`chungus`/`gyatt` types, arrays, pointers, parameters, return types and aliases-of-aliases. Top-level only: inside a function body it is rejected with `lit declarations are only allowed at top level`. A duplicate alias and an alias named after a keyword are both rejected clearly. |
 | §8.3 `whopper` (extern) | Lexed, no grammar: `syntax error, unexpected EXTERN`. |
 | §8.1 `#cooked` runnable | Correctly diagnosed as a missing file in the browser sandbox. Keep as a reference lesson, as the issue instructs. |
 | `cringe` (goto) | Label syntax (`top:`) is a parse error. Not part of the issue's curriculum; do not add it. |
@@ -410,9 +422,9 @@ example, which does not run as written).
 - `rant` cannot be a parameter (`String parameters are not supported`), and
   `rant == "literal"` silently yields the wrong answer **while exiting 0** with
   interpreter errors on stderr.
-- Globals are a parse error; a function taking a `gang` *and* returning one
-  fails; struct-typed pointer parameters (`gang P *p`, both `p.x` and `(*p).x`)
-  fail.
+- Globals are a parse error; struct-typed pointer parameters (`gang P *p`, both
+  `p.x` and `(*p).x`) fail. ~~A function taking a `gang` and returning one
+  fails~~ — that works as of v0.1.6.
 - `maxxing` takes a variable, not a type name. `yap b[6] = "hello";` is a parse
   error — fill buffers via `slorp`.
 - `slorp()` with empty stdin fails hard (`Invalid integer format`, exit 1). It
@@ -444,6 +456,29 @@ multi-file lessons runnable is a small, well-understood extension of
 `wasmWorker.ts`/`runInModule.ts` (a `files` map alongside `source`) — but the
 issue explicitly scopes it out, so it belongs in its own issue rather than
 inside this feature.
+
+### 7.4 Found while re-measuring at v0.1.6
+
+These were not tested when §7 was first written, and they constrain the
+Functions chapter more than anything in §7.2 does.
+
+- **`bussin` from inside a loop body in a function is broken.** A single call
+  is enough: the program fails with `Error: No scope to exit`, non-zero exit,
+  and its output discarded. `flex` and `goon` both, whether the `bussin` is
+  directly in the loop or inside an `edgy` within it. This is the ordinary C
+  shape (`for (...) { if (...) return x; }`) and it is what the upstream
+  reference's own `is_prime` example uses. The working forms: return outside
+  any loop, or set a flag, `bruh` out, and `bussin` once at the end. `bruh`
+  inside a function's loop is itself fine.
+- **A function must be defined before `main`.** A definition after it is
+  `syntax error, unexpected RIZZ, expecting end of file` — there are no
+  forward declarations, so `skibidi main` goes last.
+- **A non-`skibidi` function with no `bussin` runs its body twice** and yields
+  0 when its result is used. Always return.
+- **A call with the wrong number of arguments is not fatal:** it reports
+  `Mismatched number of arguments and parameters` on stderr, yields 0, and
+  exits 0. Another reason exercise checking compares stderr and not just
+  stdout.
 
 ---
 

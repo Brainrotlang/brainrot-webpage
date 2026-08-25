@@ -1,5 +1,6 @@
 import { CHAPTERS, FIRST_LESSON_ID, LESSON_COUNT, allLessons, findLesson, isLessonId } from ".";
 import programs from "../programs";
+import claims from "../programs/claims";
 import { runnableProgram } from "../types";
 
 test("lesson ids are unique", () => {
@@ -70,6 +71,22 @@ test("reference lessons say why they cannot run, and have something to show", ()
     expect(lesson.notRunnableReason.length).toBeGreaterThan(0);
     expect(lesson.snippets.length).toBeGreaterThan(0);
   }
+});
+
+test("every claim is attached to a lesson that exists", () => {
+  // A claim's whole purpose is to keep one lesson's warning honest. Pointing
+  // at a renamed or deleted lesson makes it float free: still checked by
+  // verify:lessons, no longer connected to anything a reader sees.
+  const claimEntries = Object.entries(claims);
+  expect(claimEntries.length).toBeGreaterThan(0);
+
+  const orphaned = claimEntries
+    .filter(([, claim]) => findLesson(claim.lesson) === null)
+    .map(([id, claim]) => `${id} → ${claim.lesson}`);
+  expect(orphaned).toEqual([]);
+
+  const unexplained = claimEntries.filter(([, claim]) => claim.claim.trim() === "").map(([id]) => id);
+  expect(unexplained).toEqual([]);
 });
 
 test("findLesson rejects ids that are not lessons", () => {

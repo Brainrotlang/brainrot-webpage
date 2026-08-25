@@ -85,6 +85,8 @@ src/
     content/                    the manifest: chapters, order, prose (TSX)
     programs/                   lesson programs (CommonJS — read by both the
                                 app and plain Node; see below)
+    programs/claims.js          evidence for every "does not work" warning;
+                                verified in CI, never shipped to the browser
     progress.ts                 localStorage progress, best-effort throughout
     check.ts                    exercise verdicts (behavioural comparison)
     Tour.tsx                    routes + progress/draft state for the subtree
@@ -170,6 +172,11 @@ variable named `based`. Write the program, run `yarn verify:lessons`, and
 record what actually came out. That check also fails an exercise whose
 starter already passes, which is otherwise invisible on review.
 
+**A lesson that warns about a missing or broken feature needs a claim in
+`programs/claims.js`.** Prose asserting what the interpreter *cannot* do
+rots exactly as fast as prose asserting what it can, and only the claim file
+makes the first kind checkable.
+
 Also: `wasmVersion.json` is the only place the Brainrot version is pinned.
 `runtime.ts` imports it, `scripts/fetch-wasm.mjs` reads it off disk (a plain
 Node script cannot import from `src/`). The version is appended as a `?v=`
@@ -199,6 +206,15 @@ Three layers, deliberately separate:
   test with a mocked runtime cannot say anything about it. Each program runs
   in a killable child process, because a lesson that never terminates must
   fail the check rather than hang CI.
+
+  It also runs `src/tour/programs/claims.js` — the programs behind every
+  "this does not work in this release" warning the lessons make. Those
+  warnings are claims about the interpreter, and a claim that has quietly
+  become false is worse than no warning at all: a reader who believes it
+  writes worse code than one who tries it. The v0.1.5 → v0.1.6 bump is why
+  this exists — `lit` went from "does not parse" to fully working and
+  nothing noticed. When a claim fails, update the lesson that makes it; if
+  the interpreter simply improved, delete the claim.
 
 When you add behaviour to the playground, work out which layer honestly
 covers it. A Jest test against a mocked Worker proves nothing about wasm

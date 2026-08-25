@@ -1,7 +1,9 @@
 // scripts/verify-lessons.mjs
 //
 // Runs every tour lesson's canonical program against the pinned Brainrot
-// release and checks it still does what the lesson claims.
+// release and checks it still does what the lesson claims — and then runs
+// the *claims*: the programs behind every "this does not work in this
+// release" warning the lessons make (src/tour/programs/claims.js).
 //
 // This is the guard on the tour's one unfixable failure mode: teaching
 // syntax the shipped interpreter rejects. Documentation is not evidence —
@@ -41,6 +43,7 @@ const NON_TERMINATING_DEADLINE_MS = 4_000;
 requireWasmModulePath();
 
 const { default: programs } = await import(path.join(repoRoot, "src", "tour", "programs", "index.js"));
+const { default: claims } = await import(path.join(repoRoot, "src", "tour", "programs", "claims.js"));
 
 const scratch = mkdtempSync(path.join(tmpdir(), "brainrot-lessons-"));
 
@@ -156,9 +159,57 @@ for (const [chapterId, chapterPrograms] of Object.entries(programs)) {
   }
 }
 
+console.log("\nClaims the lessons make about what does not work:");
+
+let brokenClaims = 0;
+
+for (const [id, claim] of Object.entries(claims)) {
+  const actual = await runInChild(claim.source, claim.stdin ?? "", DEADLINE_MS);
+  const problems = [];
+
+  if (actual.runnerFailed) {
+    problems.push(`the runner itself failed: ${actual.stderr.trim()}`);
+  } else if (actual.timedOut) {
+    problems.push(`did not finish within ${DEADLINE_MS}ms`);
+  } else {
+    if (claim.expect.exitCode !== undefined && actual.exitCode !== claim.expect.exitCode) {
+      problems.push(`exit code: expected ${claim.expect.exitCode}, got ${actual.exitCode}`);
+    }
+    if (claim.expect.stdout !== undefined && normalize(actual.stdout) !== normalize(claim.expect.stdout)) {
+      problems.push(`stdout: expected ${JSON.stringify(claim.expect.stdout)}, got ${JSON.stringify(actual.stdout)}`);
+    }
+    if (claim.expect.stderrIncludes !== undefined && !actual.stderr.includes(claim.expect.stderrIncludes)) {
+      problems.push(
+        `stderr: expected it to mention ${JSON.stringify(claim.expect.stderrIncludes)}, got ${JSON.stringify(actual.stderr)}`,
+      );
+    }
+  }
+  checked++;
+
+  if (problems.length === 0) {
+    console.log(`✓ ${claim.lesson} — ${claim.claim}`);
+  } else {
+    brokenClaims++;
+    console.error(
+      `✗ ${claim.lesson} — ${claim.claim}\n  ${problems.join("\n  ")}\n` +
+        `  This claim no longer holds (claim id: ${id}), so the lesson that makes it is now wrong.\n` +
+        `  Update the lesson — and if the interpreter simply got better, delete the claim.`,
+    );
+  }
+}
+
 rmSync(scratch, { recursive: true, force: true });
 
-console.log(
-  `\n${failures === 0 ? "All lessons match the pinned interpreter" : `${failures} lesson(s) drifted`} (${checked} run${checked === 1 ? "" : "s"})`,
-);
-process.exit(failures > 0 ? 1 : 0);
+const total = failures + brokenClaims;
+const summary =
+  total === 0
+    ? "All lessons and claims match the pinned interpreter"
+    : [
+        failures > 0 ? `${failures} lesson(s) drifted` : null,
+        brokenClaims > 0 ? `${brokenClaims} claim(s) no longer hold` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+console.log(`\n${summary} (${checked} run${checked === 1 ? "" : "s"})`);
+process.exit(total > 0 ? 1 : 0);
