@@ -381,12 +381,13 @@ in Node, the same way `scripts/verify-wasm-runtime.mjs` does. **The issue and
 the upstream docs both assume features that do not exist.** This section is the
 reason §4 is not optional.
 
-> **Re-measured at `v0.1.6`.** Two things changed since this was first written
-> against `v0.1.5`: `lit` now works, and a function may now take a struct *and*
-> return one. Both had been listed as blockers below and are struck through
-> accordingly. Everything else in §7.1 and §7.2 was re-run and still holds —
-> including `!`, which is still a no-op. `§7.4` collects what re-measuring
-> turned up that had not been tested before.
+> **Re-measured at `v0.1.6`.** One thing changed since this was first written
+> against `v0.1.5`: `lit` now works, so it is struck through below. A struct
+> parameter can now also be returned unchanged, but that turned out to be a
+> narrow case of a much broader restriction nobody had spotted — see §7.5.
+> Everything else in §7.1 and §7.2 was re-run and still holds — including `!`,
+> which is still a no-op. §7.4 and §7.5 collect what re-measuring turned up
+> that had not been tested before.
 >
 > The lesson from that bump: nothing had been verifying the *negative* claims.
 > `lit` went from "parse error" to fully working with no test noticing, which is
@@ -423,8 +424,8 @@ example, which does not run as written).
   `rant == "literal"` silently yields the wrong answer **while exiting 0** with
   interpreter errors on stderr.
 - Globals are a parse error; struct-typed pointer parameters (`gang P *p`, both
-  `p.x` and `(*p).x`) fail. ~~A function taking a `gang` and returning one
-  fails~~ — that works as of v0.1.6.
+  `p.x` and `(*p).x`) fail. A function taking a `gang` and returning one works
+  only when its body leaves struct fields alone — see §7.5.
 - `maxxing` takes a variable, not a type name. `yap b[6] = "hello";` is a parse
   error — fill buffers via `slorp`.
 - `slorp()` with empty stdin fails hard (`Invalid integer format`, exit 1). It
@@ -481,6 +482,34 @@ Functions chapter more than anything in §7.2 does.
   stdout.
 
 ---
+
+### 7.5 Struct fields: one per expression
+
+The restriction that shapes Chapter 4, and the reason the "structs and
+functions" story is so thin. It is not documented upstream at all, and it
+applies everywhere — inside `main` as much as inside a function.
+
+**An expression may contain at most one struct field access.** A second one
+does not raise a parse error; it produces the wrong answer, exits 0, and puts
+`Unsupported struct member access expression` or `Unsupported variable type` on
+stderr only. Affected: `p.x + p.y`, `p.x = p.y`, `p.x = p.x + 1` (so a field
+cannot be incremented), `edgy (p.x > p.y)`, and `t = p.x` where `t` already
+exists.
+
+What works: `rizz t = p.x;` (a *fresh* declaration), `p.x = 3;` and
+`p.x = n;` (a literal or plain variable in), `p.x * 2` and `edgy (p.x > 2)`
+(one field with a literal), `yapping("%d %d", p.x, p.y)` (separate arguments
+are separate expressions), and `bussin p.x`.
+
+The working habit, which Chapter 4 teaches directly: read fields out into fresh
+variables, compute on those, assign plain values back. It also explains why the
+chapter's exercise passes a `rizz` into its function rather than a `Profile` —
+that is not a style choice, it is the only arrangement that reliably works.
+
+Also in this area: a `gang` can only be *defined* at the top level, there are
+no arrays of structs, a nested field's initialiser needs its own braces, a
+struct cannot contain itself by value, a `chungus` initialiser takes exactly
+one value, and enum constant names must be unique across every enum.
 
 ## 8. Testing plan
 

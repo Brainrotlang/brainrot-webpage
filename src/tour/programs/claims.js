@@ -176,6 +176,167 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
   },
 
+  "two-fields-in-one-expression": {
+    lesson: "your-own-types/one-field-at-a-time",
+    claim: "an expression may hold at most one struct field: `p.x + p.y` yields the wrong answer",
+    source: `gang Point { rizz x; rizz y; };
+
+skibidi main {
+    gang Point p = {3, 4};
+    yapping("%d", p.x + p.y);
+    bussin 0;
+}
+`,
+    // Silently wrong rather than refused: 0 instead of 7, exit 0, complaint
+    // on stderr only. The dangerous kind.
+    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported struct member access expression" },
+  },
+
+  "a-field-cannot-be-incremented": {
+    lesson: "your-own-types/one-field-at-a-time",
+    claim: "`p.x = p.x + 1` does not work — a field cannot appear on both sides of an assignment",
+    source: `gang Point { rizz x; rizz y; };
+
+skibidi main {
+    gang Point p = {3, 4};
+    p.x = p.x + 1;
+    yapping("%d", p.x);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported variable type" },
+  },
+
+  "a-field-cannot-fill-an-existing-variable": {
+    lesson: "your-own-types/one-field-at-a-time",
+    claim: "reading a field into an *existing* variable fails; it has to be a fresh declaration",
+    source: `gang Point { rizz x; rizz y; };
+
+skibidi main {
+    gang Point p = {3, 4};
+    rizz t = 0;
+    t = p.x;
+    yapping("%d", t);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported variable type" },
+  },
+
+  "types-are-top-level-only": {
+    lesson: "your-own-types/gang",
+    claim: "a `gang` cannot be defined inside a function",
+    source: `skibidi main {
+    gang Point { rizz x; };
+    gang Point p;
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "syntax error" },
+  },
+
+  "no-arrays-of-structs": {
+    lesson: "your-own-types/gang",
+    claim: "there are no arrays of structs",
+    source: `gang Point { rizz x; };
+
+skibidi main {
+    gang Point ps[2];
+    ps[0].x = 1;
+    yapping("%d", ps[0].x);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "syntax error" },
+  },
+
+  "nested-init-needs-braces": {
+    lesson: "your-own-types/nested",
+    claim: "a nested struct field needs its own braces — a flattened initialiser is rejected",
+    source: `gang Point { rizz x; rizz y; };
+
+gang Line { gang Point start; gang Point end; };
+
+skibidi main {
+    gang Line l = {1, 2, 3, 4};
+    yapping("%d", l.start.x);
+    bussin 0;
+}
+`,
+    expect: { stderrIncludes: "needs a braced sub-initializer" },
+  },
+
+  "a-struct-cannot-contain-itself": {
+    lesson: "your-own-types/nested",
+    claim: "a struct cannot contain itself by value",
+    source: `gang Node { rizz v; gang Node inner; };
+
+skibidi main {
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "cannot contain itself by value" },
+  },
+
+  "struct-pointer-parameters-do-not-work": {
+    lesson: "your-own-types/with-functions",
+    claim: "a struct-typed pointer parameter cannot be written through, so there is no call by reference for structs",
+    source: `gang Point { rizz x; };
+
+skibidi bump(gang Point *p) {
+    (*p).x = 9;
+}
+
+skibidi main {
+    gang Point a = {1};
+    bump(&a);
+    yapping("%d", a.x);
+    bussin 0;
+}
+`,
+    expect: { stderrIncludes: "Invalid assignment target" },
+  },
+
+  "union-init-takes-one-value": {
+    lesson: "your-own-types/chungus",
+    claim: "a `chungus` initialiser must have exactly one value",
+    source: `chungus Data { rizz i; chad f; };
+
+skibidi main {
+    chungus Data d = {1, 2.0};
+    yapping("%d", d.i);
+    bussin 0;
+}
+`,
+    expect: { stderrIncludes: "exactly one value" },
+  },
+
+  "enum-constants-are-globally-unique": {
+    lesson: "your-own-types/gyatt",
+    claim: "enum constant names share one global namespace across every enum",
+    source: `gyatt A { SAME };
+gyatt B { SAME };
+
+skibidi main {
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "already defined" },
+  },
+
+  "lit-is-top-level-only": {
+    lesson: "your-own-types/lit",
+    claim: "`lit` declarations are rejected inside a function body",
+    source: `skibidi main {
+    lit rizz Aura;
+    Aura a = 1;
+    yapping("%d", a);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "only allowed at top level" },
+  },
+
   "functions-must-precede-main": {
     lesson: "functions/defining",
     claim: "a function defined after `skibidi main` does not parse — there are no forward declarations",
