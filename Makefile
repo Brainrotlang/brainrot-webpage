@@ -8,7 +8,7 @@
 IMAGE := brainrot-webpage
 PORT := 8080
 
-.PHONY: install fetch-wasm start build test verify-wasm clean \
+.PHONY: install fetch-wasm start build test typecheck verify-wasm clean \
         docker-build docker-run docker-clean deploy-s3
 
 install:
@@ -25,6 +25,9 @@ build:
 
 test:
 	CI=true yarn test --watchAll=false
+
+typecheck:
+	yarn typecheck
 
 verify-wasm:
 	yarn verify:wasm

@@ -1,12 +1,12 @@
 // App.tsx
 import React from 'react';
 import './index.css'; 
-import Footer from './Footer.tsx';
-import Hero from './Hero.tsx';
-import Navbar from './Navbar.tsx';
-import GetStarted from './GetStarted.tsx';
-import Features from './Features.tsx';
-import Playground from './Playground.tsx';
+import Footer from './Footer';
+import Hero from './Hero';
+import Navbar from './Navbar';
+import GetStarted from './GetStarted';
+import Features from './Features';
+import Playground from './Playground';
 
 const App: React.FC = () => {
   return (
