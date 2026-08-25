@@ -52,6 +52,6 @@ deploy-s3:
 	BUCKET=$(BUCKET) DISTRIBUTION_ID=$(DISTRIBUTION_ID) ./scripts/deploy-s3.sh
 
 # One-time per distribution: make client-side routes survive a refresh.
-# Usage: make cloudfront-spa DISTRIBUTION_ID=E123 [AWS_PROFILE=personal] [DRY_RUN=1]
+# Usage: make cloudfront-spa DISTRIBUTION_ID=<id> [AWS_PROFILE=<profile>] [DRY_RUN=1]
 cloudfront-spa:
 	DISTRIBUTION_ID=$(DISTRIBUTION_ID) AWS_PROFILE=$(AWS_PROFILE) DRY_RUN=$(DRY_RUN) ./scripts/configure-cloudfront-spa.sh

@@ -70,8 +70,12 @@ refreshes a page or opens a shared link.
   This is a one-time change per distribution. Either run:
 
   ```bash
+  # Find the distribution id — the one whose aliases include the site domain.
+  aws cloudfront list-distributions \
+    --query "DistributionList.Items[].{Id:Id,Aliases:Aliases.Items}" --output table
+
   # AWS_PROFILE is optional; without it the CLI resolves credentials as usual
-  DISTRIBUTION_ID=E2QWERTY123ABC AWS_PROFILE=personal make cloudfront-spa
+  DISTRIBUTION_ID=<distribution-id> AWS_PROFILE=<profile> make cloudfront-spa
   ```
 
   which is idempotent, keeps any other error responses already configured,

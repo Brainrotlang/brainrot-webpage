@@ -26,10 +26,14 @@
 # Idempotent — running it twice is a no-op. Preserves any other custom error
 # responses already configured.
 #
+# Find the distribution id with:
+#   aws cloudfront list-distributions \
+#     --query "DistributionList.Items[].{Id:Id,Aliases:Aliases.Items}" --output table
+#
 # Usage:
-#   DISTRIBUTION_ID=E123456789ABC ./scripts/configure-cloudfront-spa.sh
-#   DISTRIBUTION_ID=E123456789ABC AWS_PROFILE=personal ./scripts/configure-cloudfront-spa.sh
-#   DISTRIBUTION_ID=E123456789ABC DRY_RUN=1 ./scripts/configure-cloudfront-spa.sh
+#   DISTRIBUTION_ID=<distribution-id> ./scripts/configure-cloudfront-spa.sh
+#   DISTRIBUTION_ID=<distribution-id> AWS_PROFILE=<profile> ./scripts/configure-cloudfront-spa.sh
+#   DISTRIBUTION_ID=<distribution-id> DRY_RUN=1 ./scripts/configure-cloudfront-spa.sh
 
 set -euo pipefail
 
