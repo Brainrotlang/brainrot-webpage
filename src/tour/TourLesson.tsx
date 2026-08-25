@@ -198,6 +198,10 @@ export function TourLesson({ resolved, onProgressChange }: TourLessonProps) {
 
               {checkOutcome && <CheckVerdict outcome={checkOutcome} />}
 
+              {/* Solving the last exercise in the manifest is what finishing
+                  the tour means — there is nothing after it to navigate to. */}
+              {checkOutcome?.status === "passed" && isExercise && !next && <TourComplete />}
+
               <div className="mt-4">
                 <OutputPane runState={runState} testId="tour-output" className="h-48" />
               </div>
@@ -229,6 +233,55 @@ export function TourLesson({ resolved, onProgressChange }: TourLessonProps) {
         )}
       </nav>
     </article>
+  );
+}
+
+function TourComplete() {
+  return (
+    <section
+      aria-labelledby="tour-complete-heading"
+      className="mt-4 p-5 bg-purple-950/40 border border-purple-700 rounded-lg"
+    >
+      <h2 id="tour-complete-heading" className="text-2xl font-bold mb-2">
+        Congratulations. Your brain is now fully rotten. 🧠
+      </h2>
+      <p className="text-gray-300 mb-4">
+        That was the last one. You can read Brainrot, write it, and — more usefully than the tour can teach —
+        you know which parts of it lie to you.
+      </p>
+      <ul className="space-y-2 text-sm">
+        <li>
+          <Link to="/#playground" className="text-purple-400 hover:text-purple-300 underline">
+            Open the playground
+          </Link>{" "}
+          — a blank editor and no lesson plan.
+        </li>
+        <li>
+          <a
+            href="https://github.com/Brainrotlang/brainrot/tree/main/docs"
+            className="text-purple-400 hover:text-purple-300 underline"
+          >
+            Read the language reference
+          </a>{" "}
+          — exhaustive, and occasionally more optimistic than the interpreter.
+        </li>
+        <li>
+          <a
+            href="https://github.com/Brainrotlang/brainrot"
+            className="text-purple-400 hover:text-purple-300 underline"
+          >
+            Brainrot on GitHub
+          </a>{" "}
+          — where the limitations this tour listed get fixed.
+        </li>
+        <li>
+          <a href="https://discord.gg/FjHhvBHSGj" className="text-purple-400 hover:text-purple-300 underline">
+            Join the Discord
+          </a>{" "}
+          — for support, in both senses.
+        </li>
+      </ul>
+    </section>
   );
 }
 

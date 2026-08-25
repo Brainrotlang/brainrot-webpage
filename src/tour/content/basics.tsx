@@ -38,13 +38,15 @@ export const basicsChapter: TourChapter = {
     🚽 statements, in order, top to bottom
 }`}</Snippet>
           <p>
-            Statements run in order and end with <code>;</code>. Braces group them. <code>bussin 0</code>{" "}
-            returns from <code>main</code> and becomes the program's exit code — which the output pane shows,
-            because a program's exit code is part of what it did.
+            Statements run in order and end with <code>;</code>. Braces group them. <code>bussin 0</code> is
+            how a program signs off, and every Brainrot program you will read ends that way.
           </p>
           <p>
-            Leaving <code>bussin</code> out is allowed and exits 0, but write it anyway: every other function
-            you will meet needs it.
+            Being honest about it: in this release <code>bussin</code> inside <code>main</code> is{" "}
+            <em>ignored</em> — it sets no exit code and does not even stop execution. Inside an ordinary
+            function it works exactly as you would expect, and the Runtime chapter covers how to end a program
+            deliberately. Keep writing it here anyway; it is what the language means, and one day it will mean
+            it.
           </p>
         </>
       ),
@@ -112,13 +114,18 @@ yapping("shipped");  🚽 or a trailing one`}</Snippet>
             </table>
           </div>
           <p>
-            All three take a <code>printf</code>-style format string. Since <code>yapping</code>{" "}
-            <em>always</em> appends a newline, a format string that ends in <code>\n</code> gets you two —
-            which the program below demonstrates rather than merely claiming.
+            <code>yapping</code> and <code>yappin</code> take a <code>printf</code>-style format string plus
+            values. Since <code>yapping</code> <em>always</em> appends a newline, a format string that ends in{" "}
+            <code>\n</code> gets you two — which the program below demonstrates rather than merely claiming.
           </p>
           <p>
-            <code>baka</code> is for things that went wrong. The output pane keeps stderr visually separate, so
-            a program complaining about its input does not look like the page breaking.
+            <code>baka</code> is the odd one out: it is for things that went wrong, and it takes{" "}
+            <strong>exactly one string</strong> — no format arguments. <code>baka("value %d\n", 42)</code>{" "}
+            does not parse. The Runtime chapter comes back to what that means for error messages.
+          </p>
+          <p>
+            The output pane keeps stderr visually separate, so a program complaining about its input does not
+            look like the page breaking.
           </p>
         </>
       ),

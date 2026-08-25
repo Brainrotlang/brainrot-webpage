@@ -302,6 +302,33 @@ describe("exercises", () => {
   });
 });
 
+describe("finishing the tour", () => {
+  const FINAL = allLessons()[allLessons().length - 1];
+
+  test("solving the last exercise shows the completion panel and where to go next", async () => {
+    expect(FINAL.lesson.kind).toBe("exercise");
+    if (FINAL.lesson.kind !== "exercise") return;
+
+    mockRunBrainrot.mockResolvedValue(ok({ stdout: FINAL.lesson.program.expect.stdout }));
+    const user = await renderTourAt(`/tour/${FINAL.id}`);
+
+    await user.click(screen.getByRole("button", { name: /check/i }));
+
+    expect(await screen.findByRole("heading", { name: /brain is now fully rotten/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open the playground/i })).toHaveAttribute("href", "/#playground");
+  });
+
+  test("solving an earlier exercise does not claim the tour is finished", async () => {
+    mockRunBrainrot.mockResolvedValue(ok({ stdout: "aura: 9001\n" }));
+    const user = await renderTourAt(`/tour/${EXERCISE}`);
+
+    await user.click(screen.getByRole("button", { name: /check/i }));
+
+    await screen.findByText(/certified w/i);
+    expect(screen.queryByRole("heading", { name: /brain is now fully rotten/i })).not.toBeInTheDocument();
+  });
+});
+
 describe("progress", () => {
   test("reading a lesson counts as progress, and Continue comes back to it", async () => {
     const user = await renderTourAt(`/tour/${STDIN_LESSON}`);

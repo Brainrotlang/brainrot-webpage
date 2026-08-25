@@ -1,6 +1,7 @@
 import { CHAPTERS, FIRST_LESSON_ID, LESSON_COUNT, allLessons, findLesson, isLessonId } from ".";
 import programs from "../programs";
 import claims from "../programs/claims";
+import { LIMITATIONS } from "../limitations";
 import { runnableProgram } from "../types";
 
 test("lesson ids are unique", () => {
@@ -87,6 +88,28 @@ test("every claim is attached to a lesson that exists", () => {
 
   const unexplained = claimEntries.filter(([, claim]) => claim.claim.trim() === "").map(([id]) => id);
   expect(unexplained).toEqual([]);
+});
+
+test("the limitations page lists exactly the claims marked as limitations", () => {
+  // The page's wording is a copy of the claims' wording, kept separate so the
+  // claims file (whole programs, run by CI) stays out of the browser bundle.
+  // This is what stops the copy from drifting.
+  const claimed = Object.values(claims)
+    // `limitation` is only present on the claims that are limitations, so
+    // the flag has to be narrowed rather than read straight off the union.
+    .filter((claim) => "limitation" in claim && claim.limitation)
+    .map((claim) => `${claim.lesson} :: ${claim.claim}`)
+    .sort();
+  const listed = LIMITATIONS.map((limitation) => `${limitation.lesson} :: ${limitation.text}`).sort();
+
+  expect(listed).toEqual(claimed);
+});
+
+test("every limitation points at a lesson that exists", () => {
+  const orphaned = LIMITATIONS.filter((limitation) => findLesson(limitation.lesson) === null).map(
+    (limitation) => limitation.lesson,
+  );
+  expect(orphaned).toEqual([]);
 });
 
 test("findLesson rejects ids that are not lessons", () => {

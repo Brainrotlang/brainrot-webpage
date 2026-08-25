@@ -26,6 +26,7 @@
 
 const claims = {
   "no-block-comments": {
+    limitation: true,
     lesson: "basics/comments",
     claim: "there is no /* ... */ block comment form",
     source: `skibidi main {
@@ -50,6 +51,7 @@ const claims = {
   },
 
   "smol-rizz-does-not-parse": {
+    limitation: true,
     lesson: "basics/number-sizes",
     claim: "`smol` stands alone — `smol rizz` is a syntax error",
     source: `skibidi main {
@@ -62,6 +64,7 @@ const claims = {
   },
 
   "bare-giga-does-not-parse": {
+    limitation: true,
     lesson: "basics/number-sizes",
     claim: "`giga`, `thicc`, `nut` and `nonut` require the `rizz` and will not parse bare",
     source: `skibidi main {
@@ -87,6 +90,7 @@ const claims = {
   },
 
   "logical-not-is-a-no-op": {
+    limitation: true,
     lesson: "basics/operators",
     claim: "`!` returns its operand unchanged instead of negating it: !L is L, !W is W",
     source: `skibidi main {
@@ -120,6 +124,7 @@ const claims = {
   },
 
   "maxxing-rejects-a-type-name": {
+    limitation: true,
     lesson: "basics/maxxing",
     claim: "`maxxing` takes a value, not a type name",
     source: `skibidi main {
@@ -131,6 +136,7 @@ const claims = {
   },
 
   "arrays-cannot-be-parameters": {
+    limitation: true,
     lesson: "basics/maxxing",
     claim: "arrays cannot be passed to functions, so their length must be computed where they are declared",
     source: `skibidi bump(rizz *a) {
@@ -164,6 +170,7 @@ skibidi main {
   },
 
   "grind-does-not-parse": {
+    limitation: true,
     lesson: "control-flow/bruh",
     claim: "`grind` (continue) does not parse in any form",
     source: `skibidi main {
@@ -174,6 +181,44 @@ skibidi main {
 }
 `,
     expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
+  },
+
+  "baka-takes-exactly-one-string": {
+    limitation: true,
+    lesson: "basics/output",
+    claim: "`baka` takes a single string — passing format arguments does not parse",
+    source: `skibidi main {
+    baka("value %d\\n", 42);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "unexpected COMMA" },
+  },
+
+  "main-bussin-is-ignored": {
+    limitation: true,
+    lesson: "runtime/exit-codes",
+    claim: "`bussin` inside main sets no exit code and does not stop execution",
+    source: `skibidi main {
+    yapping("before");
+    bussin 7;
+    yapping("after");
+}
+`,
+    // Both halves of the claim in one program: "after" prints (no early
+    // return) and the process still exits 0 (the 7 goes nowhere).
+    expect: { exitCode: 0, stdout: "before\nafter\n" },
+  },
+
+  "bet-requires-a-cap": {
+    lesson: "runtime/bet",
+    claim: "`bet` rejects a non-cap condition before the program runs",
+    source: `skibidi main {
+    bet(1, "an int is not a cap");
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "expected bool, got int" },
   },
 
   "array-elements-combine-freely": {
@@ -228,6 +273,7 @@ skibidi main {
   },
 
   "pointer-arithmetic-is-unchecked": {
+    limitation: true,
     lesson: "pointers/arithmetic",
     claim: "pointer arithmetic past the end of an array is not caught, unlike indexing",
     source: `skibidi main {
@@ -244,6 +290,7 @@ skibidi main {
   },
 
   "two-fields-in-one-expression": {
+    limitation: true,
     lesson: "your-own-types/one-field-at-a-time",
     claim: "an expression may hold at most one struct field: `p.x + p.y` yields the wrong answer",
     source: `gang Point { rizz x; rizz y; };
@@ -260,6 +307,7 @@ skibidi main {
   },
 
   "a-field-cannot-be-incremented": {
+    limitation: true,
     lesson: "your-own-types/one-field-at-a-time",
     claim: "`p.x = p.x + 1` does not work — a field cannot appear on both sides of an assignment",
     source: `gang Point { rizz x; rizz y; };
@@ -275,6 +323,7 @@ skibidi main {
   },
 
   "a-field-cannot-fill-an-existing-variable": {
+    limitation: true,
     lesson: "your-own-types/one-field-at-a-time",
     claim: "reading a field into an *existing* variable fails; it has to be a fresh declaration",
     source: `gang Point { rizz x; rizz y; };
@@ -291,6 +340,7 @@ skibidi main {
   },
 
   "types-are-top-level-only": {
+    limitation: true,
     lesson: "your-own-types/gang",
     claim: "a `gang` cannot be defined inside a function",
     source: `skibidi main {
@@ -303,6 +353,7 @@ skibidi main {
   },
 
   "no-arrays-of-structs": {
+    limitation: true,
     lesson: "your-own-types/gang",
     claim: "there are no arrays of structs",
     source: `gang Point { rizz x; };
@@ -346,6 +397,7 @@ skibidi main {
   },
 
   "struct-pointer-parameters-do-not-work": {
+    limitation: true,
     lesson: "your-own-types/with-functions",
     claim: "a struct-typed pointer parameter cannot be written through, so there is no call by reference for structs",
     source: `gang Point { rizz x; };
@@ -392,6 +444,7 @@ skibidi main {
   },
 
   "lit-is-top-level-only": {
+    limitation: true,
     lesson: "your-own-types/lit",
     claim: "`lit` declarations are rejected inside a function body",
     source: `skibidi main {
@@ -405,6 +458,7 @@ skibidi main {
   },
 
   "functions-must-precede-main": {
+    limitation: true,
     lesson: "functions/defining",
     claim: "a function defined after `skibidi main` does not parse — there are no forward declarations",
     source: `skibidi main {
@@ -420,6 +474,7 @@ rizz later(rizz x) {
   },
 
   "a-missing-bussin-runs-the-body-twice": {
+    limitation: true,
     lesson: "functions/defining",
     claim: "a non-void function with no `bussin` runs its body twice and yields 0",
     source: `rizz forgot(rizz x) {
@@ -437,6 +492,7 @@ skibidi main {
   },
 
   "cap-result-cannot-be-tested-in-place": {
+    limitation: true,
     lesson: "functions/parameters",
     claim: "a cap-returning call cannot be tested in place — it has to land in a cap first",
     source: `cap is_even(rizz n) {
@@ -454,6 +510,7 @@ skibidi main {
   },
 
   "globals-do-not-parse": {
+    limitation: true,
     lesson: "functions/scope",
     claim: "a variable declared outside a function does not parse — there are no globals",
     source: `rizz counter = 0;
