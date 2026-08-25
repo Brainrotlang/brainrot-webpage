@@ -62,8 +62,15 @@ src/
   index.tsx, App.tsx            entry point and page composition
   Navbar/Hero/Features/         static marketing sections
   GetStarted/Footer.tsx
-  Playground.tsx                playground UI (editor + stdin + output panes)
+  Playground.tsx                homepage playground section: examples dropdown,
+                                load-failure panel, composed over runner/
   wasmVersion.json              the pinned Brainrot release — single source of truth
+  runner/
+    runState.ts                 the states a run can be in (discriminated union)
+    useBrainrotRun.ts           run state machine; owns the whole error taxonomy
+    OutputPane.tsx              stdout/stderr/exit code/timeout rendering
+    RunControls.tsx             Run + Reset, with a slot for surface-specific controls
+    StdinPanel.tsx              the stdin disclosure and its per-surface preference
   playground/
     runtime.ts                  public API: runBrainrot(); owns the timeout watchdog
     createWasmWorker.ts         Worker construction, isolated so Jest can mock it
@@ -83,9 +90,14 @@ public/wasm/                    gitignored; populated by fetch-wasm, never commi
 
 The execution path is:
 
-`Playground.tsx` → `runBrainrot()` (`runtime.ts`) → `createWasmWorker()` →
-`wasmWorker.ts` (in a Worker) → `runInModule()` → Emscripten module →
-`brainrot.wasm`.
+`Playground.tsx` → `useBrainrotRun()` (`runner/`) → `runBrainrot()`
+(`runtime.ts`) → `createWasmWorker()` → `wasmWorker.ts` (in a Worker) →
+`runInModule()` → Emscripten module → `brainrot.wasm`.
+
+Anything else that runs Brainrot in the browser joins that path at
+`useBrainrotRun()` — there is one execution implementation, not one per
+surface. A second copy of the run/output/error handling is the thing this
+split exists to prevent.
 
 Four constraints hold this design together. Each of them was a bug once.
 
@@ -112,7 +124,10 @@ Four constraints hold this design together. Each of them was a bug once.
    `runBrainrot()` rejects with `RuntimeLoadError` when the runtime itself
    never came up (infrastructure problem: nothing can run here) and with a
    plain `Error` when the program crashed after loading (the program's
-   problem, presentable like any other result). Callers branch on this.
+   problem, presentable like any other result). `useBrainrotRun()` is the
+   one place that branches on it, mapping the first to `loadFailed` and the
+   second to an ordinary `result`; UI code consumes `RunState` and should
+   not re-derive the distinction.
 
 Also: `wasmVersion.json` is the only place the Brainrot version is pinned.
 `runtime.ts` imports it, `scripts/fetch-wasm.mjs` reads it off disk (a plain
