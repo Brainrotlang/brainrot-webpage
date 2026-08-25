@@ -13,5 +13,7 @@ module.exports = {
   basics: require("./basics"),
   "control-flow": require("./controlFlow"),
   functions: require("./functions"),
+  "arrays-and-input": require("./arraysAndInput"),
+  pointers: require("./pointers"),
   "your-own-types": require("./userDefinedTypes"),
 };

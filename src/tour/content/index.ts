@@ -11,6 +11,8 @@ import { usingTheTourChapter } from "./usingTheTour";
 import { basicsChapter } from "./basics";
 import { controlFlowChapter } from "./controlFlow";
 import { functionsChapter } from "./functions";
+import { arraysAndInputChapter } from "./arraysAndInput";
+import { pointersChapter } from "./pointers";
 import { userDefinedTypesChapter } from "./userDefinedTypes";
 
 /** Curriculum order. This array *is* the tour's table of contents. */
@@ -19,6 +21,8 @@ export const CHAPTERS: readonly TourChapter[] = [
   basicsChapter,
   controlFlowChapter,
   functionsChapter,
+  arraysAndInputChapter,
+  pointersChapter,
   userDefinedTypesChapter,
 ];
 

@@ -1,6 +1,6 @@
 // src/tour/content/controlFlow.tsx
 //
-// Chapter 2: branching and looping.
+// The "Control Flow" chapter: branching and looping.
 //
 // Two lessons here exist because of what the interpreter actually does
 // rather than what a C programmer would assume: the never-ending goon

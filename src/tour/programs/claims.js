@@ -176,6 +176,73 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
   },
 
+  "array-elements-combine-freely": {
+    lesson: "arrays-and-input/loops",
+    claim: "unlike struct fields, two array elements can share an expression",
+    source: `skibidi main {
+    rizz a[2] = {3, 4};
+    yapping("%d", a[0] + a[1]);
+    bussin 0;
+}
+`,
+    // The contrast the lesson draws only holds while this keeps working.
+    expect: { exitCode: 0, stdout: "7\n" },
+  },
+
+  "negative-indices-are-caught-too": {
+    lesson: "arrays-and-input/bounds",
+    claim: "a negative index is caught by the same bounds check",
+    source: `skibidi main {
+    rizz a[2] = {1, 2};
+    yapping("%d", a[-1]);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "out of bounds" },
+  },
+
+  "deprecated-slorp-warns": {
+    lesson: "arrays-and-input/slorp",
+    claim: "the old `slorp(variable)` form still works but warns on stderr",
+    source: `skibidi main {
+    rizz n;
+    slorp(n);
+    yapping("%d", n);
+    bussin 0;
+}
+`,
+    stdin: "7\n",
+    expect: { exitCode: 0, stdout: "7\n", stderrIncludes: "deprecated" },
+  },
+
+  "a-pointer-must-be-initialised": {
+    lesson: "pointers/addresses",
+    claim: "a pointer declaration without a value is rejected",
+    source: `skibidi main {
+    rizz *slot;
+    yapping("%d", *slot);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "expected a pointer" },
+  },
+
+  "pointer-arithmetic-is-unchecked": {
+    lesson: "pointers/arithmetic",
+    claim: "pointer arithmetic past the end of an array is not caught, unlike indexing",
+    source: `skibidi main {
+    rizz a[2] = {1, 2};
+    rizz *walker = &a[0];
+    walker = walker + 5;
+    yapping("%d", *walker);
+    bussin 0;
+}
+`,
+    // No bounds error and no crash: it reads whatever is there. The lesson
+    // contrasts this with a[5], which is refused.
+    expect: { exitCode: 0 },
+  },
+
   "two-fields-in-one-expression": {
     lesson: "your-own-types/one-field-at-a-time",
     claim: "an expression may hold at most one struct field: `p.x + p.y` yields the wrong answer",

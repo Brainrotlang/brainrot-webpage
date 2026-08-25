@@ -1,7 +1,8 @@
 // src/tour/content/usingTheTour.tsx
 //
-// Chapter 0. Prose lives in TSX (no MDX, no new dependency); the programs
-// live in ../programs, so CI can run them without loading React.
+// The "Using the Tour" chapter. Prose lives in TSX (no MDX, no new
+// dependency); the programs live in ../programs, so CI can run them without
+// loading React.
 
 import type { TourChapter } from "../types";
 import programs from "../programs";

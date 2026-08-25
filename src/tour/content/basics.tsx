@@ -1,6 +1,6 @@
 // src/tour/content/basics.tsx
 //
-// Chapter 1: the parts of Brainrot you cannot avoid.
+// The "Basics" chapter: the parts of Brainrot you cannot avoid.
 //
 // Lesson order is dependency order, not the reference manual's order: you
 // need output before variables are worth declaring, and variables before

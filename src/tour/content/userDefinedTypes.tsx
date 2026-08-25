@@ -1,6 +1,6 @@
 // src/tour/content/userDefinedTypes.tsx
 //
-// Chapter 4: gang, chungus, gyatt and lit.
+// The "Your Own Types" chapter: gang, chungus, gyatt and lit.
 //
 // The chapter is shaped around one restriction the reference manual does not
 // mention: an expression may hold at most one struct field access. That rules
@@ -170,8 +170,8 @@ skibidi relocate(gang Point p) {
 }`}</Snippet>
           <p>
             There is no opting out because <strong>struct pointer parameters do not work</strong>:{" "}
-            <code>gang Point *p</code> parses, but assigning through it is rejected. So the call-by-reference
-            trick that Chapter 5 will use for numbers is unavailable for structs.
+            <code>gang Point *p</code> parses, but assigning through it is rejected. So the call-by-reference trick from
+            the pointers chapter is unavailable for structs.
           </p>
           <p>
             Combined with the one-field rule, the practical shape is: keep structs in <code>main</code>, pass{" "}
