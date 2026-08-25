@@ -1,8 +1,14 @@
 // src/tour/content/basics.tsx
 //
-// Chapter 1. A first slice only — the framework lands before the
-// curriculum does, so this chapter exists mainly to prove that an exercise
-// works end to end.
+// Chapter 1: the parts of Brainrot you cannot avoid.
+//
+// Lesson order is dependency order, not the reference manual's order: you
+// need output before variables are worth declaring, and variables before
+// operators do anything visible.
+//
+// Where the language does not do what a C programmer would expect, the
+// lesson says so. Every claim about behaviour here was checked with
+// `yarn verify:lessons` against the pinned release.
 
 import type { TourChapter } from "../types";
 import { Snippet } from "../Snippet";
@@ -14,6 +20,109 @@ export const basicsChapter: TourChapter = {
   id: "basics",
   title: "Basics",
   lessons: [
+    {
+      slug: "program-structure",
+      kind: "demo",
+      title: "skibidi main",
+      summary: "Where a program starts and what a statement looks like.",
+      program: chapterPrograms["program-structure"],
+      Body: () => (
+        <>
+          <p>
+            Every Brainrot program has exactly one entry point, spelled{" "}
+            <code>skibidi main</code>. <code>skibidi</code> is <code>void</code> and{" "}
+            <code>main</code> is a reserved word — unlike C, where <code>main</code> is an ordinary identifier
+            that everyone happens to agree on.
+          </p>
+          <Snippet>{`skibidi main {
+    🚽 statements, in order, top to bottom
+}`}</Snippet>
+          <p>
+            Statements run in order and end with <code>;</code>. Braces group them. <code>bussin 0</code>{" "}
+            returns from <code>main</code> and becomes the program's exit code — which the output pane shows,
+            because a program's exit code is part of what it did.
+          </p>
+          <p>
+            Leaving <code>bussin</code> out is allowed and exits 0, but write it anyway: every other function
+            you will meet needs it.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "comments",
+      kind: "demo",
+      title: "Comments",
+      summary: "The toilet. Yes, really.",
+      program: chapterPrograms.comments,
+      Body: () => (
+        <>
+          <p>
+            Brainrot's comment marker is <code>🚽</code>. Everything from the toilet to the end of the line is
+            ignored.
+          </p>
+          <Snippet>{`🚽 a whole-line comment
+yapping("shipped");  🚽 or a trailing one`}</Snippet>
+          <p>
+            There is no block-comment form — no <code>{"/* ... */"}</code> equivalent — so commenting out a
+            region means a toilet on every line.
+          </p>
+          <p>
+            It is a real Unicode character, not an ASCII digraph. Copying Brainrot through something that
+            mangles emoji will produce syntax errors that look inexplicable.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "output",
+      kind: "demo",
+      title: "Output",
+      summary: "yapping, yappin, baka — and where each one's text ends up.",
+      program: chapterPrograms.output,
+      Body: () => (
+        <>
+          <p>Three ways to print, differing in exactly two respects: the newline, and the destination.</p>
+          <div className="overflow-x-auto my-4">
+            <table className="text-sm">
+              <thead>
+                <tr className="text-gray-400">
+                  <th className="text-left pr-6 pb-2">Call</th>
+                  <th className="text-left pr-6 pb-2">Goes to</th>
+                  <th className="text-left pb-2">Adds a newline</th>
+                </tr>
+              </thead>
+              <tbody className="font-mono">
+                <tr>
+                  <td className="pr-6 text-purple-400">yapping</td>
+                  <td className="pr-6 text-gray-300">stdout</td>
+                  <td className="text-gray-300">always</td>
+                </tr>
+                <tr>
+                  <td className="pr-6 text-purple-400">yappin</td>
+                  <td className="pr-6 text-gray-300">stdout</td>
+                  <td className="text-gray-300">never</td>
+                </tr>
+                <tr>
+                  <td className="pr-6 text-purple-400">baka</td>
+                  <td className="pr-6 text-gray-300">stderr</td>
+                  <td className="text-gray-300">never</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            All three take a <code>printf</code>-style format string. Since <code>yapping</code>{" "}
+            <em>always</em> appends a newline, a format string that ends in <code>\n</code> gets you two —
+            which the program below demonstrates rather than merely claiming.
+          </p>
+          <p>
+            <code>baka</code> is for things that went wrong. The output pane keeps stderr visually separate, so
+            a program complaining about its input does not look like the page breaking.
+          </p>
+        </>
+      ),
+    },
     {
       slug: "variables",
       kind: "exercise",
@@ -28,10 +137,6 @@ export const basicsChapter: TourChapter = {
           </p>
           <Snippet>{`rizz aura = 100;      🚽 declare and initialise
 aura = aura + 1;      🚽 assign later`}</Snippet>
-          <p>
-            Anything after <code>🚽</code> to the end of the line is a comment. Yes, the toilet is the comment
-            marker. No, there is no block-comment form.
-          </p>
           <p>
             <code>yapping</code> takes a format string like C's <code>printf</code>: <code>%d</code> for an
             integer, <code>%s</code> for text, <code>%f</code> for a float.
@@ -80,11 +185,174 @@ aura = aura + 1;      🚽 assign later`}</Snippet>
           <p>
             Watch out for keywords: <code>based</code> looks like an ordinary word but it is Brainrot's{" "}
             <code>default</code>, so naming a variable <code>based</code> is a syntax error rather than a
-            statement about the variable.
+            statement about the variable. <code>main</code>, <code>salty</code>, <code>grind</code> and{" "}
+            <code>cringe</code> are all reserved too.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "number-sizes",
+      kind: "demo",
+      title: "Wider and narrower numbers",
+      summary: "smol, giga, thicc, nut, nonut — and which combinations actually parse.",
+      program: chapterPrograms["number-sizes"],
+      Body: () => (
+        <>
+          <p>
+            The size and signedness modifiers are C's, renamed. What is <em>not</em> like C is that they are
+            fussy about which combinations the grammar accepts in this release:
+          </p>
+          <div className="overflow-x-auto my-4">
+            <table className="text-sm">
+              <thead>
+                <tr className="text-gray-400">
+                  <th className="text-left pr-6 pb-2">Write this</th>
+                  <th className="text-left pb-2">Meaning</th>
+                </tr>
+              </thead>
+              <tbody className="font-mono">
+                {[
+                  ["smol x", "short"],
+                  ["giga rizz x", "long int"],
+                  ["thicc rizz x", "long long int"],
+                  ["nut rizz x", "signed int"],
+                  ["nonut rizz x", "unsigned int"],
+                ].map(([form, meaning]) => (
+                  <tr key={form}>
+                    <td className="pr-6 text-purple-400">{form}</td>
+                    <td className="text-gray-300">{meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <code>smol</code> stands alone — <code>smol rizz</code> is a syntax error. The other four{" "}
+            <em>require</em> the <code>rizz</code>: bare <code>giga</code>, <code>thicc</code> or{" "}
+            <code>nut</code> will not parse. Both directions are easy to get wrong, and neither is what C
+            would let you write.
           </p>
           <p>
-            The wider integer forms (<code>smol</code>, <code>giga rizz</code>, <code>thicc rizz</code>,{" "}
-            <code>nut rizz</code>, <code>nonut rizz</code>) exist too and get their own lesson later.
+            Plain <code>rizz</code> is what you want almost always. Reach for these when a value genuinely
+            will not fit, or when you are matching an external interface.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "qualifiers",
+      kind: "demo",
+      title: "Constants and qualifiers",
+      summary: "deadass, salty, schizo — const, static, volatile.",
+      program: chapterPrograms.qualifiers,
+      Body: () => (
+        <>
+          <p>Three qualifiers, all with C's meaning:</p>
+          <div className="overflow-x-auto my-4">
+            <table className="text-sm">
+              <tbody className="font-mono">
+                {[
+                  ["deadass", "const", "cannot be reassigned"],
+                  ["salty", "static", "keeps its storage"],
+                  ["schizo", "volatile", "do not optimise reads away"],
+                ].map(([brainrot, c, meaning]) => (
+                  <tr key={brainrot}>
+                    <td className="pr-6 text-purple-400">{brainrot}</td>
+                    <td className="pr-6 text-gray-300">{c}</td>
+                    <td className="text-gray-400">{meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <code>deadass</code> is the one you will actually reach for, and it is enforced rather than
+            decorative — uncomment the last line in the program and you get{" "}
+            <code>Cannot modify const variable</code> instead of a shrug.
+          </p>
+          <p>
+            Note that a rejected program still tells you something: the message lands on stderr and the exit
+            code is non-zero, which is how you can tell a refused program from one that ran and printed
+            nothing.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "operators",
+      kind: "demo",
+      title: "Operators",
+      summary: "Arithmetic, comparison, logic, ++ and -- — plus one that is broken.",
+      program: chapterPrograms.operators,
+      Body: () => (
+        <>
+          <p>
+            Arithmetic is <code>+ - * / %</code>, comparison is <code>{"< > <= >= == !="}</code>, and
+            precedence is C's: <code>*</code> and <code>/</code> bind tighter than <code>+</code> and{" "}
+            <code>-</code>, and parentheses win. Division between integers truncates, so <code>7 / 2</code> is{" "}
+            <code>3</code>.
+          </p>
+          <p>
+            <code>&&</code> and <code>||</code> work as expected, and <code>++</code> / <code>--</code> come in
+            both prefix and postfix forms.
+          </p>
+          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
+            <strong>Careful: <code>!</code> does not negate in this release.</strong> It parses, and it returns
+            its operand unchanged — <code>!W</code> is <code>W</code>, <code>!L</code> is <code>L</code>, and{" "}
+            <code>edgy (!(a &lt; b))</code> takes the branch it should have skipped. Until that is fixed, write
+            the comparison the other way round (<code>a &gt;= b</code>) instead of negating it. This tour runs
+            its examples against the interpreter the site ships, which is how this is known rather than
+            guessed.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "maxxing",
+      kind: "demo",
+      title: "maxxing",
+      summary: "sizeof, and the array-length idiom built on it.",
+      program: chapterPrograms.maxxing,
+      Body: () => (
+        <>
+          <p>
+            <code>maxxing</code> is <code>sizeof</code>: it reports how many bytes a value occupies.
+          </p>
+          <Snippet>{`rizz scores[4] = {10, 20, 30, 40};
+
+🚽 the classic C idiom, and it works here
+rizz count = maxxing(scores) / maxxing(scores[0]);`}</Snippet>
+          <p>
+            That idiom is worth remembering, because arrays in Brainrot do not carry their length around and
+            cannot be passed to functions — so the length has to be computed where the array is declared.
+          </p>
+          <p>
+            One restriction: <code>maxxing</code> takes a <em>value</em>, not a type name.{" "}
+            <code>maxxing(rizz)</code> is a syntax error; declare a variable and measure that instead.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "aura-calculator",
+      kind: "exercise",
+      title: "Exercise: aura calculator",
+      summary: "Put arithmetic, variables and formatted output together.",
+      program: chapterPrograms["aura-calculator"],
+      Body: () => (
+        <>
+          <p>
+            Three days of aura readings are already declared. Two lines need finishing: one to total them, one
+            to average them.
+          </p>
+          <p className="mt-4 p-3 bg-purple-950/40 border border-purple-800 rounded-lg">
+            <strong>Your turn.</strong> Make the program print the real total and the real average, then press{" "}
+            <strong>Check</strong>. Integer division is fine — the expected average is a whole number.
+          </p>
+          <p className="text-sm text-gray-400">
+            Stuck, or bored? <strong>Next</strong> always works. An unsolved exercise is marked as skipped
+            rather than blocking the rest of the tour.
           </p>
         </>
       ),
