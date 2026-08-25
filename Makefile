@@ -9,7 +9,7 @@ IMAGE := brainrot-webpage
 PORT := 8080
 
 .PHONY: install fetch-wasm start build test typecheck verify-wasm verify-lessons clean \
-        docker-build docker-run docker-clean deploy-s3
+        docker-build docker-run docker-clean deploy-s3 cloudfront-spa
 
 install:
 	yarn install
@@ -50,3 +50,8 @@ docker-clean:
 # Usage: make deploy-s3 BUCKET=my-bucket [DISTRIBUTION_ID=E123]
 deploy-s3:
 	BUCKET=$(BUCKET) DISTRIBUTION_ID=$(DISTRIBUTION_ID) ./scripts/deploy-s3.sh
+
+# One-time per distribution: make client-side routes survive a refresh.
+# Usage: make cloudfront-spa DISTRIBUTION_ID=E123 [AWS_PROFILE=personal] [DRY_RUN=1]
+cloudfront-spa:
+	DISTRIBUTION_ID=$(DISTRIBUTION_ID) AWS_PROFILE=$(AWS_PROFILE) DRY_RUN=$(DRY_RUN) ./scripts/configure-cloudfront-spa.sh
