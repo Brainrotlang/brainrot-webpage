@@ -1,16 +1,22 @@
 # Dockerfile
 #
 # Multi-stage build: compile the CRA app (including fetching the pinned
-# brainrot.wasm release via package.json's "prebuild" hook) in a Node
-# stage, then serve the static output with nginx. Node 18 matches CI
-# (.github/workflows/build.yml's "Set Node.js 18.x"), so a build that
+# brainrot.wasm release via package.json's "prebuild" hook, so this stage
+# needs network access) in a Node stage, then serve the static output with
+# nginx. Node 24 matches CI (.github/workflows/build.yml), so a build that
 # passes CI also builds cleanly here.
+#
+# The package manager is Yarn 4 via Corepack, exactly as in CI — the Yarn
+# 1.22 that ships inside the node image cannot read this repo's lockfile
+# format. `.yarnrc.yml` is copied alongside the manifest because it carries
+# settings that must be in place *before* install runs (`nodeLinker`), not
+# after the later `COPY . .`.
 
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN corepack enable && yarn install --immutable
 
 COPY . .
 RUN yarn build
