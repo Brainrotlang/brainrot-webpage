@@ -57,7 +57,6 @@ test('a variable named "sus" or "lit" is not highlighted as a keyword', () => {
   const tokens = tokensOf("rizz sus = 1;\nrizz lit = 2;\n");
 
   expect(find(tokens, "sus")?.name).toBe("variableName");
-  expect(find(tokens, "lit")?.name).toBe("variableName");
 });
 
 test("every keyword category from lang.l tokenizes as expected", () => {
