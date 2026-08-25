@@ -26,6 +26,7 @@ Yarn (Berry, via Corepack) is the package manager; `packageManager` in
 | Install | `yarn install` |
 | Dev server | `yarn start` (http://localhost:3000) |
 | Production build | `yarn build` (output in `build/`) |
+| Typecheck | `yarn typecheck` |
 | Unit tests | `CI=true yarn test --watchAll=false` |
 | Download the pinned wasm | `yarn fetch-wasm` (add `--force` to re-download) |
 | Verify wasm interop for real | `yarn verify:wasm` |
@@ -42,8 +43,8 @@ it fails fast if `public/wasm/brainrot.mjs` is missing.
 ## CI
 
 `.github/workflows/build.yml` runs on every PR to `main`, on Node 24:
-install (immutable) → unit tests → fetch wasm → `verify:wasm` → production
-build. Both workflows use `paths-ignore` for `**/*.md`, `CODEOWNERS` and
+install (immutable) → `typecheck` → unit tests → fetch wasm → `verify:wasm` →
+production build. Both workflows use `paths-ignore` for `**/*.md`, `CODEOWNERS` and
 `Makefile`, so a docs-only change will show no build at all. That is
 expected, not a broken pipeline.
 
@@ -149,6 +150,15 @@ implementation would still pass it.
   WorkerGlobal` cast in `wasmWorker.ts` is a documented workaround for
   conflicting `dom`/`webworker` lib typings under a single-tsconfig CRA
   setup, not a licence to cast freely.
+- **Two things keep the typecheck able to run at all, on TypeScript 4.9.5.**
+  Import paths carry no `.tsx`/`.ts` extension (writing one requires
+  `allowImportingTsExtensions`, a TypeScript 5.0 option that 4.9 rejects as
+  unknown, which invalidates the whole config), and `@types/node` stays at
+  `^24` or below (`26.x` fails to *parse* under 4.9 — syntax errors, which
+  `skipLibCheck` does not suppress). Either mistake previously left
+  `yarn build` silently transpiling without checking types at all. Expect a
+  Dependabot `@types/node` bump to fail CI; the fix is a TypeScript upgrade,
+  not raising the pin on its own.
 - **Comments explain why, not what.** This codebase's file headers and
   inline comments carry real information — why a Worker is recreated per
   run, why the stamp file is deleted before the download, why an extra
