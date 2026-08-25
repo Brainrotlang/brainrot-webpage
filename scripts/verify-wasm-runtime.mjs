@@ -4,9 +4,8 @@
 // works: loads public/wasm/brainrot.mjs in Node and runs small Brainrot
 // programs through it, the same way src/playground/runInModule.ts does
 // (MEMFS write + callMain, print/printErr capture, ExitStatus handling).
-// Deliberately a standalone plain-JS reimplementation rather than
-// importing the TS module directly — Node in CI doesn't run TypeScript
-// natively, and this way a bug in one doesn't silently hide in the other.
+// That reimplementation lives in scripts/lib/brainrot-node.mjs, which
+// explains why it is deliberately kept independent of the TypeScript one.
 //
 // Covers the behavioral acceptance criteria from
 // https://github.com/Brainrotlang/brainrot-webpage/issues/7 that don't
@@ -15,57 +14,18 @@
 // real infinite loop can't be interrupted from plain Node the way a
 // browser Worker can be terminate()d).
 //
+// This script is about the *interop*. Whether the tour's lessons still
+// teach programs this interpreter accepts is scripts/verify-lessons.mjs.
+//
 // Usage: node scripts/verify-wasm-runtime.mjs
 //   (run from the repo root, after public/wasm/brainrot.mjs exists —
 //   see scripts/fetch-wasm.mjs)
 
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import { loadBrainrotFactory, requireWasmModulePath, runProgram } from "./lib/brainrot-node.mjs";
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(scriptDir, "..");
-const wasmJsPath = path.join(repoRoot, "public", "wasm", "brainrot.mjs");
+const createBrainrotModule = await loadBrainrotFactory(requireWasmModulePath());
 
-if (!existsSync(wasmJsPath)) {
-  console.error(`brainrot.mjs not found at ${wasmJsPath} — run "node scripts/fetch-wasm.mjs" first.`);
-  process.exit(1);
-}
-
-const createBrainrotModule = (await import(wasmJsPath)).default;
-
-function isExitStatus(e) {
-  return e && typeof e === "object" && typeof e.status === "number";
-}
-
-async function runInModule(source, stdin = "") {
-  const stdoutChunks = [];
-  const stderrChunks = [];
-  let stdinPos = 0;
-
-  const mod = await createBrainrotModule({
-    print: (text) => stdoutChunks.push(text),
-    printErr: (text) => stderrChunks.push(text),
-    stdin: () => (stdinPos < stdin.length ? stdin.charCodeAt(stdinPos++) : null),
-    noInitialRun: true,
-  });
-
-  mod.FS.writeFile("/prog.brainrot", source);
-
-  let exitCode = 0;
-  try {
-    exitCode = mod.callMain(["/prog.brainrot"]);
-  } catch (e) {
-    if (!isExitStatus(e)) throw e;
-    exitCode = e.status;
-  }
-
-  return {
-    stdout: stdoutChunks.join("\n") + (stdoutChunks.length ? "\n" : ""),
-    stderr: stderrChunks.join("\n") + (stderrChunks.length ? "\n" : ""),
-    exitCode,
-  };
-}
+const runInModule = (source, stdin = "") => runProgram(createBrainrotModule, source, stdin);
 
 let failures = 0;
 

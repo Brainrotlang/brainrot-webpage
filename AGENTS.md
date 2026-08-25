@@ -30,6 +30,7 @@ Yarn (Berry, via Corepack) is the package manager; `packageManager` in
 | Unit tests | `CI=true yarn test --watchAll=false` |
 | Download the pinned wasm | `yarn fetch-wasm` (add `--force` to re-download) |
 | Verify wasm interop for real | `yarn verify:wasm` |
+| Verify tour lessons for real | `yarn verify:lessons` |
 
 `Makefile` is a thin wrapper over these plus the Docker targets
 (`make docker-build`, `make docker-run`, `make deploy-s3`). The yarn scripts
@@ -44,7 +45,8 @@ it fails fast if `public/wasm/brainrot.mjs` is missing.
 
 `.github/workflows/build.yml` runs on every PR to `main`, on Node 24:
 install (immutable) → `typecheck` → unit tests → fetch wasm → `verify:wasm` →
-production build. Both workflows use `paths-ignore` for `**/*.md`, `CODEOWNERS` and
+`verify:lessons` → production build. Both workflows use `paths-ignore` for
+`**/*.md`, `CODEOWNERS` and
 `Makefile`, so a docs-only change will show no build at all. That is
 expected, not a broken pipeline.
 
@@ -97,7 +99,10 @@ src/
     theme.ts, examples.ts       editor theme, starter programs
 scripts/
   fetch-wasm.mjs                downloads the pinned release into public/wasm/
-  verify-wasm-runtime.mjs       runs real Brainrot programs through the real wasm in Node
+  verify-wasm-runtime.mjs       does the wasm interop work at all?
+  verify-lessons.mjs            do the tour's programs still do what they claim?
+  lib/brainrot-node.mjs         run-a-program-under-Node, shared by both
+  lib/run-one-program.mjs       one program, one process (so it can be killed)
   deploy-s3.sh                  manual/CI-shared S3 sync
 public/wasm/                    gitignored; populated by fetch-wasm, never committed
 ```
@@ -161,8 +166,9 @@ vacuous.
 it.** The pinned interpreter rejects plenty of syntax the upstream docs
 describe, and accepts things with surprising results — `based` is the
 `default` keyword, so `cap based = W;` is a syntax error rather than a
-variable named `based`. Write the program, run it against
-`public/wasm/brainrot.mjs`, and record what actually came out.
+variable named `based`. Write the program, run `yarn verify:lessons`, and
+record what actually came out. That check also fails an exercise whose
+starter already passes, which is otherwise invisible on review.
 
 Also: `wasmVersion.json` is the only place the Brainrot version is pinned.
 `runtime.ts` imports it, `scripts/fetch-wasm.mjs` reads it off disk (a plain
@@ -174,16 +180,25 @@ you bump the pin, run `yarn fetch-wasm` and `yarn verify:wasm`.
 
 ## Testing
 
-Two layers, deliberately separate:
+Three layers, deliberately separate:
 
 - **Jest / React Testing Library** (`*.test.ts[x]`, run by `react-scripts
   test`) covers UI and orchestration logic. `runtime.test.ts` mocks
   `createWasmWorker` — it tests promise and timer plumbing, not wasm.
 - **`scripts/verify-wasm-runtime.mjs`** runs actual Brainrot programs
-  through the actual downloaded artifact under Node. It is a standalone
-  plain-JS reimplementation of `runInModule.ts` on purpose: Node in CI does
-  not execute TypeScript, and a bug in one implementation should not hide
-  inside the other.
+  through the actual downloaded artifact under Node, answering "does the
+  interop work at all". It is a standalone plain-JS reimplementation of
+  `runInModule.ts` on purpose: Node in CI does not execute TypeScript, and a
+  bug in one implementation should not hide inside the other. (It shares
+  `scripts/lib/brainrot-node.mjs` with the lessons check — that is one copy
+  of the *Node* implementation, still independent of the TypeScript one.)
+- **`scripts/verify-lessons.mjs`** runs every tour lesson's canonical
+  program against the pinned artifact and compares it to what the lesson
+  claims. This is the only thing standing between a `wasmVersion.json` bump
+  and a tour that teaches syntax the shipped interpreter rejects; a Jest
+  test with a mocked runtime cannot say anything about it. Each program runs
+  in a killable child process, because a lesson that never terminates must
+  fail the check rather than hang CI.
 
 When you add behaviour to the playground, work out which layer honestly
 covers it. A Jest test against a mocked Worker proves nothing about wasm
@@ -236,9 +251,9 @@ implementation would still pass it.
 - Do not run `yarn eject`.
 - Keep changes scoped. Unrelated refactors belong in their own PR — say so
   rather than folding them in.
-- Before opening a PR, run the same sequence CI does:
+- Before opening a PR, run the same sequence CI does: `yarn typecheck`,
   `CI=true yarn test --watchAll=false`, `yarn fetch-wasm`, `yarn verify:wasm`,
-  `yarn build`.
+  `yarn verify:lessons`, `yarn build`.
 - `CODEOWNERS` assigns review of everything to `@araujo88`.
 
 ## Workflows
