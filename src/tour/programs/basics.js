@@ -176,26 +176,6 @@ const maxxing = {
   },
 };
 
-const lit = {
-  starter: `🚽 lit declarations go at the top level, outside every function.
-lit rizz Aura;
-lit gigachad Precise;
-
-skibidi main {
-    Aura mine = 9001;
-    Precise ratio = 1.5;
-
-    yapping("%d %.1f", mine, ratio);
-
-    🚽 An alias is the type it names — same size, same everything.
-    yapping("an Aura is %d bytes, a rizz is %d", maxxing(mine), maxxing(mine));
-
-    bussin 0;
-}
-`,
-  expect: { stdout: "9001 1.5\nan Aura is 4 bytes, a rizz is 4\n", exitCode: 0 },
-};
-
 const auraCalculator = {
   starter: `skibidi main {
     rizz monday = 120;
@@ -241,7 +221,6 @@ module.exports = {
   variables,
   types,
   "number-sizes": numberSizes,
-  lit,
   qualifiers,
   operators,
   maxxing,

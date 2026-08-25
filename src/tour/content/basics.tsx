@@ -241,45 +241,6 @@ aura = aura + 1;      🚽 assign later`}</Snippet>
       ),
     },
     {
-      slug: "lit",
-      kind: "demo",
-      title: "Type aliases with lit",
-      summary: "Give a type a second name — new in the release this site runs.",
-      program: chapterPrograms.lit,
-      Body: () => (
-        <>
-          <p>
-            <code>lit</code> is <code>typedef</code>: it gives an existing type another name. The alias is not
-            a new type — it is the same type wearing a better label, and the two are interchangeable
-            everywhere.
-          </p>
-          <Snippet>{`lit rizz Aura;
-lit gigachad Precise;
-
-Aura mine = 9001;      🚽 exactly a rizz
-Precise ratio = 1.5;   🚽 exactly a gigachad`}</Snippet>
-          <p>
-            Aliases work for the primitives, for <code>gang</code>, <code>chungus</code> and{" "}
-            <code>gyatt</code> types (later chapters), for arrays and pointers of the aliased type, and for
-            parameter and return types. You can even alias an alias.
-          </p>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>
-              <code>lit</code> only works at the top level.
-            </strong>{" "}
-            Inside a function body it is rejected with{" "}
-            <code>lit declarations are only allowed at top level</code>. Put aliases above{" "}
-            <code>skibidi main</code> with the other declarations. Declaring the same alias twice is also an
-            error, and an alias cannot be named after a keyword.
-          </p>
-          <p className="text-sm text-gray-400">
-            This is new: <code>lit</code> did not parse at all in the previous Brainrot release. The tour
-            teaches the version this site actually runs, so it appears here as soon as the pin moved.
-          </p>
-        </>
-      ),
-    },
-    {
       slug: "qualifiers",
       kind: "demo",
       title: "Constants and qualifiers",

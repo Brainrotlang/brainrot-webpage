@@ -176,19 +176,6 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
   },
 
-  "lit-is-top-level-only": {
-    lesson: "basics/lit",
-    claim: "`lit` declarations are rejected inside a function body",
-    source: `skibidi main {
-    lit rizz Aura;
-    Aura a = 1;
-    yapping("%d", a);
-    bussin 0;
-}
-`,
-    expect: { exitCode: 1, stderrIncludes: "only allowed at top level" },
-  },
-
   "functions-must-precede-main": {
     lesson: "functions/defining",
     claim: "a function defined after `skibidi main` does not parse — there are no forward declarations",
