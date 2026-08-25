@@ -52,6 +52,26 @@ yarn build
 
 - Outputs a production-ready build in the `build/` folder.
 
+## Deploying: the host must fall back to `index.html`
+
+This is a single-page app with real client-side routes (`/tour/...`), so any
+URL that is not a file on disk has to be answered with `index.html` and a
+`200`. Get this wrong and the app works perfectly right up until somebody
+refreshes a page or opens a shared link.
+
+- **nginx / the Docker image**: already handled by `try_files $uri $uri/
+  /index.html;` in `nginx.conf`.
+- **S3 + CloudFront**: **not configurable from this repository.** An S3 REST
+  origin answers a missing key with `403`, so the distribution needs custom
+  error responses mapping `403` (and `404`) to `/index.html` with response
+  code `200`, or an equivalent CloudFront Function. `scripts/deploy-s3.sh`
+  and `.github/workflows/deploy.yml` upload the right objects with the right
+  headers; neither can create that behaviour.
+
+Verify after any hosting change by requesting a deep route directly rather
+than clicking through to it — clicking never leaves the SPA and so never
+exercises the fallback.
+
 ## Project Structure
 
 ```
