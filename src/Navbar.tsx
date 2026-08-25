@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Terminal } from 'lucide-react';
 
 const Navbar: React.FC = () => {
@@ -6,12 +7,20 @@ const Navbar: React.FC = () => {
         <div>
             <nav className="bg-gray-800 p-4">
                 <div className="container mx-auto flex flex-wrap justify-between items-center gap-y-3">
-                    <div className="flex items-center space-x-2">
+                    {/* The navbar frames every route now, so the brand has to
+                        be a way back to the homepage — from a 404 or a deep
+                        route there is otherwise none. */}
+                    <Link to="/" className="flex items-center space-x-2">
                         <Terminal className="w-8 h-8" />
                         <span className="text-xl font-bold">Brainrot 🧠</span>
-                    </div>
+                    </Link>
                     <div className="flex flex-wrap justify-end gap-x-6 gap-y-2">
-                        <a href="#playground" className="hover:text-purple-400">Playground</a>
+                        {/* A bare "#playground" would resolve against whatever
+                            route is current, and only "/" has that section.
+                            The leading "/" makes it navigate home first;
+                            useScrollToHash then does the scrolling React
+                            Router deliberately leaves alone. */}
+                        <Link to="/#playground" className="hover:text-purple-400">Playground</Link>
                         <a href="https://github.com/Brainrotlang/brainrot/tree/main/docs" className="hover:text-purple-400">Docs</a>
                         <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Discord</a>
                         <a

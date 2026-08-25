@@ -55,6 +55,12 @@ get `immutable`, `index.html` gets `no-cache`, and `*.mjs` needs an explicit
 `brainrot.mjs` fails silently. `nginx.conf` carries the same `.mjs` fix for
 the Docker image. Change one, check the other.
 
+The app also has client-side routes, so a host that serves a deep URL as a
+missing file breaks refreshes and shared links. `nginx.conf` handles it with
+`try_files`; the CloudFront side needs custom error responses and cannot be
+configured from this repository — see `README.md`. No test in this repo can
+catch a regression there.
+
 ## Layout
 
 ```
