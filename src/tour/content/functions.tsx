@@ -1,6 +1,6 @@
 // src/tour/content/functions.tsx
 //
-// Chapter 3: functions.
+// The "Functions" chapter.
 //
 // The interesting lesson here is "Returning early". The ordinary C shape —
 // return from inside a loop — is broken in the pinned interpreter, and it is
