@@ -47,5 +47,8 @@ jobs:
       - name: Verify wasm runtime against the real artifact
         run: yarn verify:wasm
       
+      - name: Verify tour lessons against the pinned interpreter
+        run: yarn verify:lessons
+      
       - name: Build production bundle
         run: yarn build

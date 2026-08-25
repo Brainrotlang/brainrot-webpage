@@ -28,6 +28,7 @@
     "test": "react-scripts test",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "verify:wasm": "node scripts/verify-wasm-runtime.mjs",
+    "verify:lessons": "node scripts/verify-lessons.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
