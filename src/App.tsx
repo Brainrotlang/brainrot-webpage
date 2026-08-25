@@ -8,7 +8,7 @@
 // that are not files — see nginx.conf for the Docker image and README.md
 // for the CloudFront side, which this repository cannot configure.
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import './index.css';
 import Navbar from './Navbar';
@@ -16,6 +16,10 @@ import Footer from './Footer';
 import Home from './Home';
 import NotFound from './NotFound';
 import { useScrollToHash } from './useScrollToHash';
+
+// The tour carries the whole curriculum — prose, programs, its own layout.
+// Someone who came for the landing page should not download it.
+const Tour = lazy(() => import('./tour/Tour'));
 
 const App: React.FC = () => {
   useScrollToHash();
@@ -26,6 +30,14 @@ const App: React.FC = () => {
       <Navbar/>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route
+          path="/tour/*"
+          element={
+            <Suspense fallback={<p className="container mx-auto py-16 px-4 text-gray-400">Loading the tour…</p>}>
+              <Tour />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer/>

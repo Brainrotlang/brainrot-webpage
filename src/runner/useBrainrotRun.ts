@@ -13,6 +13,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { runBrainrot, RuntimeLoadError } from "../playground/runtime";
+import type { RunResult } from "../playground/runtime";
 import type { RunState } from "./runState";
 
 export interface BrainrotRun {
@@ -20,8 +21,16 @@ export interface BrainrotRun {
   isRunning: boolean;
   /** The runtime itself never loaded — nothing can run until reload. */
   isLoadFailed: boolean;
-  /** No-op while a run is in flight, or once the runtime has failed to load. */
-  run: (source: string, stdin?: string) => void;
+  /**
+   * Resolves with the result the pane is showing, or null when there is
+   * nothing to show it for: a run was already in flight, the runtime failed
+   * to load, or this run was superseded by a newer one. Callers that only
+   * want the output rendered can ignore it; a caller that has to *judge*
+   * the result — checking an exercise — needs the result of the run it
+   * asked for specifically, not whatever state happens to be current when
+   * it next looks.
+   */
+  run: (source: string, stdin?: string) => Promise<RunResult | null>;
   /** Back to idle, discarding any in-flight run's result. */
   reset: () => void;
 }
@@ -46,36 +55,36 @@ export function useBrainrotRun(): BrainrotRun {
   const isLoadFailed = runState.status === "loadFailed";
 
   const run = useCallback(
-    (source: string, stdin: string = "") => {
-      if (inFlightRef.current || isLoadFailed) return;
+    (source: string, stdin: string = ""): Promise<RunResult | null> => {
+      if (inFlightRef.current || isLoadFailed) return Promise.resolve(null);
       inFlightRef.current = true;
       const runId = ++runIdRef.current;
       setRunState({ status: "running" });
-      runBrainrot(source, stdin)
+      return runBrainrot(source, stdin)
         .then((result) => {
           inFlightRef.current = false;
-          if (runIdRef.current !== runId) return;
+          if (runIdRef.current !== runId) return null;
           setRunState({ status: "result", result });
+          return result;
         })
         .catch((error: unknown) => {
           inFlightRef.current = false;
-          if (runIdRef.current !== runId) return;
+          if (runIdRef.current !== runId) return null;
           const message = error instanceof Error ? error.message : String(error);
           if (error instanceof RuntimeLoadError) {
             // The runtime itself never loaded — nothing can run here right
             // now. Degrade the whole surface instead of pretending Run
             // still works.
             setRunState({ status: "loadFailed", message });
-          } else {
-            // The module loaded fine; the *program* crashed after it
-            // started running (a wasm trap, an unexpected abort). That's
-            // this run's problem, not the playground's — show it like any
-            // other result and leave the controls usable.
-            setRunState({
-              status: "result",
-              result: { stdout: "", stderr: message, exitCode: -1, timedOut: false },
-            });
+            return null;
           }
+          // The module loaded fine; the *program* crashed after it started
+          // running (a wasm trap, an unexpected abort). That's this run's
+          // problem, not the playground's — show it like any other result
+          // and leave the controls usable.
+          const result: RunResult = { stdout: "", stderr: message, exitCode: -1, timedOut: false };
+          setRunState({ status: "result", result });
+          return result;
         });
     },
     [isLoadFailed],
