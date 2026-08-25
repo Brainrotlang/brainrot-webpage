@@ -10,9 +10,15 @@ import { lessonId } from "../types";
 import { usingTheTourChapter } from "./usingTheTour";
 import { basicsChapter } from "./basics";
 import { controlFlowChapter } from "./controlFlow";
+import { functionsChapter } from "./functions";
 
 /** Curriculum order. This array *is* the tour's table of contents. */
-export const CHAPTERS: readonly TourChapter[] = [usingTheTourChapter, basicsChapter, controlFlowChapter];
+export const CHAPTERS: readonly TourChapter[] = [
+  usingTheTourChapter,
+  basicsChapter,
+  controlFlowChapter,
+  functionsChapter,
+];
 
 /**
  * Flattened once at module load. Everything else indexes into this, so

@@ -176,6 +176,124 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
   },
 
+  "functions-must-precede-main": {
+    lesson: "functions/defining",
+    claim: "a function defined after `skibidi main` does not parse — there are no forward declarations",
+    source: `skibidi main {
+    yapping("%d", later(2));
+    bussin 0;
+}
+
+rizz later(rizz x) {
+    bussin x * 3;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "expecting end of file" },
+  },
+
+  "a-missing-bussin-runs-the-body-twice": {
+    lesson: "functions/defining",
+    claim: "a non-void function with no `bussin` runs its body twice and yields 0",
+    source: `rizz forgot(rizz x) {
+    yapping("called with %d", x);
+}
+
+skibidi main {
+    rizz r = forgot(1);
+    yapping("%d", r);
+    bussin 0;
+}
+`,
+    // Two "called with 1" lines for one call is the whole point.
+    expect: { exitCode: 0, stdout: "called with 1\ncalled with 1\n0\n" },
+  },
+
+  "cap-result-cannot-be-tested-in-place": {
+    lesson: "functions/parameters",
+    claim: "a cap-returning call cannot be tested in place — it has to land in a cap first",
+    source: `cap is_even(rizz n) {
+    bussin (n % 2) == 0;
+}
+
+skibidi main {
+    edgy (is_even(10)) {
+        yapping("even");
+    }
+    bussin 0;
+}
+`,
+    expect: { stderrIncludes: "cannot be used in an integer context" },
+  },
+
+  "globals-do-not-parse": {
+    lesson: "functions/scope",
+    claim: "a variable declared outside a function does not parse — there are no globals",
+    source: `rizz counter = 0;
+
+skibidi tick() {
+    counter = counter + 1;
+}
+
+skibidi main {
+    tick();
+    yapping("%d", counter);
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "syntax error" },
+  },
+
+  "wrong-argument-count-is-not-fatal": {
+    lesson: "functions/calls",
+    claim: "calling with the wrong number of arguments reports on stderr but still exits 0",
+    source: `rizz twice(rizz x) {
+    bussin x * 2;
+}
+
+skibidi main {
+    yapping("%d", twice());
+    bussin 0;
+}
+`,
+    expect: { exitCode: 0, stderrIncludes: "Mismatched number of arguments" },
+  },
+
+  "deep-recursion-exhausts-the-stack": {
+    lesson: "functions/recursion",
+    claim: "recursion deep enough to exhaust the WebAssembly stack fails as a crashed program",
+    source: `rizz deep(rizz n) {
+    edgy (n <= 0) { bussin 0; }
+    bussin deep(n - 1);
+}
+
+skibidi main {
+    yapping("%d", deep(5000));
+    bussin 0;
+}
+`,
+    expect: { exitCode: -1, stderrIncludes: "call stack size exceeded" },
+  },
+
+  "bussin-inside-a-loop-breaks": {
+    lesson: "functions/returning-early",
+    claim: "a `bussin` inside a loop body in a function fails with 'No scope to exit'",
+    source: `rizz first_divisor(rizz n) {
+    flex (rizz i = 2; i < n; i++) {
+        edgy ((n % i) == 0) {
+            bussin i;
+        }
+    }
+    bussin 0;
+}
+
+skibidi main {
+    yapping("%d", first_divisor(9));
+    bussin 0;
+}
+`,
+    expect: { exitCode: 1, stderrIncludes: "No scope to exit" },
+  },
+
   "slorp-needs-input": {
     lesson: "using-the-tour/running-brainrot",
     claim: "`slorp` on empty input fails outright rather than reading a zero",
