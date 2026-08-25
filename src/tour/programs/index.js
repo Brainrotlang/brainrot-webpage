@@ -13,4 +13,5 @@ module.exports = {
   basics: require("./basics"),
   "control-flow": require("./controlFlow"),
   functions: require("./functions"),
+  "your-own-types": require("./userDefinedTypes"),
 };
