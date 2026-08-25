@@ -16,4 +16,6 @@ module.exports = {
   "arrays-and-input": require("./arraysAndInput"),
   pointers: require("./pointers"),
   "your-own-types": require("./userDefinedTypes"),
+  runtime: require("./runtime"),
+  capstone: require("./capstone"),
 };
