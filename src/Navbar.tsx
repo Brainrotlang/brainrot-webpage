@@ -21,6 +21,9 @@ const Navbar: React.FC = () => {
                             useScrollToHash then does the scrolling React
                             Router deliberately leaves alone. */}
                         <Link to="/#playground" className="hover:text-purple-400">Playground</Link>
+                        {/* Tour teaches the language, Docs is for looking it
+                            up — hence this order, and hence both. */}
+                        <Link to="/tour" className="hover:text-purple-400">Tour</Link>
                         <a href="https://github.com/Brainrotlang/brainrot/tree/main/docs" className="hover:text-purple-400">Docs</a>
                         <a href="https://discord.gg/FjHhvBHSGj" className="hover:text-purple-400">Discord</a>
                         <a
