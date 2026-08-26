@@ -2,11 +2,12 @@
 //
 // The "Your Own Types" chapter: gang, chungus, gyatt and lit.
 //
-// The chapter is shaped around one restriction the reference manual does not
-// mention: an expression may hold at most one struct field access. That rules
-// out `p.x + p.y` and even `p.x = p.x + 1`, anywhere — not only inside
-// functions — so it gets its own lesson early, before anything asks the
-// reader to compute with fields.
+// Struct field access used to carry a restriction the reference manual did
+// not mention: an expression could hold at most one field access, which
+// ruled out `p.x + p.y` and even `p.x = p.x + 1`. That restriction was
+// lifted as of v0.1.7 (see src/tour/programs/claims.js), so the
+// "one-field-at-a-time" lesson now demonstrates the forms that used to fail
+// rather than working around them.
 //
 // `lit` lives here rather than in Basics because `lit gang Point Coord;` is
 // the reason the feature exists; aliasing `rizz` alone is a curiosity.
@@ -76,41 +77,25 @@ export const userDefinedTypesChapter: TourChapter = {
     {
       slug: "one-field-at-a-time",
       kind: "demo",
-      title: "One field at a time",
-      summary: "The restriction that shapes everything else you do with structs.",
+      title: "Fields in expressions",
+      summary: "Struct fields behave like any other value — this release lifted the old restriction.",
       program: chapterPrograms["one-field-at-a-time"],
       Body: () => (
         <>
           <p>
-            Reading and writing fields works — but only one field per expression. This is the single most
-            surprising thing about structs in this release, and it is worth learning before you write
-            anything real.
+            Reading and writing fields works exactly the way it looks like it should: a field can appear
+            anywhere a plain variable can, combined with other fields, assigned from an expression that reads
+            the same field, or compared directly.
           </p>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>An expression may hold at most one field access.</strong> Two of them produce the wrong
-            answer — and do it quietly: <code>0</code> on stdout, exit code 0, and the complaint only on
-            stderr. All of these are affected, in <code>main</code> as much as in a function:
-            <br />
-            <code>p.x + p.y</code> · <code>p.x = p.y</code> · <code>p.x = p.x + 1</code> ·{" "}
-            <code>edgy (p.x &gt; p.y)</code> · <code>t = p.x</code> where <code>t</code> already exists.
-          </p>
-          <p>Which leaves a shape that does work, and is worth making a habit:</p>
-          <Snippet>{`rizz across = p.x;        🚽 read out, into a fresh variable
-rizz down = p.y;
-
-rizz sum = across + down; 🚽 compute on plain variables
-down = down + 10;
-
-p.y = down;               🚽 write a plain value back in`}</Snippet>
-          <p>
-            A field on its own is always fine: with a literal (<code>p.x * 2</code>), compared to a literal (
-            <code>edgy (p.x &gt; 2)</code>), as one of several arguments (
-            <code>yapping("%d %d", p.x, p.y)</code> — separate arguments are separate expressions), or
-            returned from a function (<code>bussin p.x</code>).
-          </p>
+          <Snippet>{`yapping("%d", p.x + p.y);   🚽 two fields in one expression
+p.x = p.x + 1;               🚽 a field on both sides of an assignment
+t = p.y;                     🚽 a field read into an existing variable
+edgy (p.x > p.y) { ... }     🚽 a field on each side of a comparison`}</Snippet>
           <p className="text-sm text-gray-400">
-            Every failing form above is checked against the shipped interpreter in CI, so this lesson cannot
-            outlive the restriction it describes.
+            This is new: earlier Brainrot releases allowed at most one field access per expression, and broke
+            silently rather than refusing to parse — <code>p.x + p.y</code> would print <code>0</code>,
+            exit 0, and complain only on stderr. That restriction is gone as of v0.1.7, checked against the
+            shipped interpreter in CI, so this lesson cannot go stale the way the old one could.
           </p>
         </>
       ),
@@ -137,8 +122,7 @@ l.end.y = 40;`}</Snippet>
           <p>
             The nested initialiser needs its own braces: the flattened{" "}
             <code>{"gang Line l = {1, 2, 3, 4};"}</code> is rejected, with a message that tells you which
-            field wanted braces. Note also that a chain like <code>l.start.x</code> counts as one field
-            access, so the previous lesson's rule still applies to it.
+            field wanted braces.
           </p>
           <p>
             A struct cannot contain <em>itself</em> by value — it would have no finite size, and the
@@ -174,10 +158,10 @@ skibidi relocate(gang Point p) {
             the pointers chapter is unavailable for structs.
           </p>
           <p>
-            Combined with the one-field rule, the practical shape is: keep structs in <code>main</code>, pass{" "}
-            <em>fields</em> into functions as plain numbers, and let functions return plain numbers. The
-            exercise at the end of this chapter is built that way, and it is not a stylistic preference — it
-            is the only arrangement that reliably works.
+            With no way to write back through a struct parameter, the practical shape is: keep structs in{" "}
+            <code>main</code>, pass <em>fields</em> into functions as plain numbers, and let functions return
+            plain numbers. The exercise at the end of this chapter is built that way, and it is not a
+            stylistic preference — it is the only arrangement that reliably works.
           </p>
         </>
       ),

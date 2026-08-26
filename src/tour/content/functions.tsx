@@ -198,11 +198,16 @@ bussin found;`}</Snippet>
             Recursion sidesteps the previous lesson's problem neatly: the returns are not inside a loop, so
             early <code>bussin</code> works normally.
           </p>
+          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
+            <strong>There is a floor, and it is closer than it looks.</strong> Past about 84 nested calls the
+            run does not crash — it hangs forever. No error, no exit code, no output: indistinguishable from an
+            infinite loop, and cut off the same way, by the timeout rather than by the interpreter. 84 levels
+            is not a deliberately extreme case; ordinary recursive code can reach it by accident.
+          </p>
           <p>
-            There is a floor, though. Around a thousand nested calls the WebAssembly stack runs out and the run
-            fails as a crashed program rather than a polite error. And <code>fib</code> as written below is
-            exponential — asking for <code>fib(40)</code> will hit the tour's few-second cutoff, which is a
-            performance lesson delivered the hard way.
+            And <code>fib</code> as written below is exponential — asking for <code>fib(40)</code> will hit
+            that same timeout, for a different reason: not too deep, just too much work, which is a performance
+            lesson delivered the hard way.
           </p>
         </>
       ),

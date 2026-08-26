@@ -164,13 +164,16 @@ console.log("\nClaims the lessons make about what does not work:");
 let brokenClaims = 0;
 
 for (const [id, claim] of Object.entries(claims)) {
-  const actual = await runInChild(claim.source, claim.stdin ?? "", DEADLINE_MS);
+  const claimDeadline = claim.expect.timedOut ? NON_TERMINATING_DEADLINE_MS : DEADLINE_MS;
+  const actual = await runInChild(claim.source, claim.stdin ?? "", claimDeadline);
   const problems = [];
 
   if (actual.runnerFailed) {
     problems.push(`the runner itself failed: ${actual.stderr.trim()}`);
+  } else if (claim.expect.timedOut) {
+    if (!actual.timedOut) problems.push("expected this program never to terminate, but it finished");
   } else if (actual.timedOut) {
-    problems.push(`did not finish within ${DEADLINE_MS}ms`);
+    problems.push(`did not finish within ${claimDeadline}ms`);
   } else {
     if (claim.expect.exitCode !== undefined && actual.exitCode !== claim.expect.exitCode) {
       problems.push(`exit code: expected ${claim.expect.exitCode}, got ${actual.exitCode}`);

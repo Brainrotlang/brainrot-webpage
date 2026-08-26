@@ -76,18 +76,6 @@ export const LIMITATIONS: readonly Limitation[] = [
     lesson: "pointers/arithmetic",
   },
   {
-    text: "an expression may hold at most one struct field: `p.x + p.y` yields the wrong answer",
-    lesson: "your-own-types/one-field-at-a-time",
-  },
-  {
-    text: "`p.x = p.x + 1` does not work — a field cannot appear on both sides of an assignment",
-    lesson: "your-own-types/one-field-at-a-time",
-  },
-  {
-    text: "reading a field into an *existing* variable fails; it has to be a fresh declaration",
-    lesson: "your-own-types/one-field-at-a-time",
-  },
-  {
     text: "a `gang` cannot be defined inside a function",
     lesson: "your-own-types/gang",
   },
