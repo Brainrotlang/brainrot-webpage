@@ -4,10 +4,11 @@
 // these live in CommonJS rather than TypeScript, and why nothing here is
 // annotated.
 //
-// Three shapes are avoided throughout because the interpreter cannot handle
-// them (all recorded in claims.js): arrays of structs, struct-typed pointer
-// parameters, and touching struct members inside a function that has a
-// struct parameter.
+// Two shapes are avoided throughout because the interpreter cannot handle
+// them (both recorded in claims.js): arrays of structs, and struct-typed
+// pointer parameters. Field access inside ordinary expressions — p.x + p.y,
+// p.x = p.x + 1, and the like — used to be a third restriction here; it was
+// lifted as of v0.1.7, so programs below use it freely.
 
 const gang = {
   starter: `🚽 Type definitions go at the top level, above every function.
@@ -59,24 +60,29 @@ const oneFieldAtATime = {
 skibidi main {
     gang Point p = {3, 4};
 
-    🚽 Read a field out into a fresh variable...
-    rizz across = p.x;
-    rizz down = p.y;
+    🚽 Two fields in one expression.
+    yapping("%d", p.x + p.y);
 
-    🚽 ...do the arithmetic on those...
-    rizz sum = across + down;
-    down = down + 10;
+    🚽 A field on both sides of an assignment.
+    p.x = p.x + 1;
+    yapping("%d", p.x);
 
-    🚽 ...and write plain values back in.
-    p.y = down;
+    🚽 A field read into a variable that already exists.
+    rizz t = 0;
+    t = p.y;
+    yapping("%d", t);
 
-    🚽 A field on its own, or with a literal, is fine anywhere.
-    yapping("%d %d sum=%d doubled=%d", p.x, p.y, sum, p.x * 2);
+    🚽 A field on each side of a comparison.
+    edgy (p.x > p.y) {
+        yapping("x is bigger");
+    } amogus {
+        yapping("y is bigger or equal");
+    }
 
     bussin 0;
 }
 `,
-  expect: { stdout: "3 14 sum=7 doubled=6\n", exitCode: 0 },
+  expect: { stdout: "7\n4\n4\ny is bigger or equal\n", exitCode: 0 },
 };
 
 const nested = {

@@ -222,15 +222,14 @@ skibidi main {
   },
 
   "array-elements-combine-freely": {
-    lesson: "arrays-and-input/loops",
-    claim: "unlike struct fields, two array elements can share an expression",
+    lesson: "arrays-and-input/arrays",
+    claim: "two array elements can share an expression",
     source: `skibidi main {
     rizz a[2] = {3, 4};
     yapping("%d", a[0] + a[1]);
     bussin 0;
 }
 `,
-    // The contrast the lesson draws only holds while this keeps working.
     expect: { exitCode: 0, stdout: "7\n" },
   },
 
@@ -287,56 +286,6 @@ skibidi main {
     // No bounds error and no crash: it reads whatever is there. The lesson
     // contrasts this with a[5], which is refused.
     expect: { exitCode: 0 },
-  },
-
-  "two-fields-in-one-expression": {
-    limitation: true,
-    lesson: "your-own-types/one-field-at-a-time",
-    claim: "an expression may hold at most one struct field: `p.x + p.y` yields the wrong answer",
-    source: `gang Point { rizz x; rizz y; };
-
-skibidi main {
-    gang Point p = {3, 4};
-    yapping("%d", p.x + p.y);
-    bussin 0;
-}
-`,
-    // Silently wrong rather than refused: 0 instead of 7, exit 0, complaint
-    // on stderr only. The dangerous kind.
-    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported struct member access expression" },
-  },
-
-  "a-field-cannot-be-incremented": {
-    limitation: true,
-    lesson: "your-own-types/one-field-at-a-time",
-    claim: "`p.x = p.x + 1` does not work — a field cannot appear on both sides of an assignment",
-    source: `gang Point { rizz x; rizz y; };
-
-skibidi main {
-    gang Point p = {3, 4};
-    p.x = p.x + 1;
-    yapping("%d", p.x);
-    bussin 0;
-}
-`,
-    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported variable type" },
-  },
-
-  "a-field-cannot-fill-an-existing-variable": {
-    limitation: true,
-    lesson: "your-own-types/one-field-at-a-time",
-    claim: "reading a field into an *existing* variable fails; it has to be a fresh declaration",
-    source: `gang Point { rizz x; rizz y; };
-
-skibidi main {
-    gang Point p = {3, 4};
-    rizz t = 0;
-    t = p.x;
-    yapping("%d", t);
-    bussin 0;
-}
-`,
-    expect: { exitCode: 0, stdout: "0\n", stderrIncludes: "Unsupported variable type" },
   },
 
   "types-are-top-level-only": {
@@ -545,18 +494,21 @@ skibidi main {
 
   "deep-recursion-exhausts-the-stack": {
     lesson: "functions/recursion",
-    claim: "recursion deep enough to exhaust the WebAssembly stack fails as a crashed program",
+    claim: "recursion past about 84 levels deep hangs forever instead of crashing or returning",
     source: `rizz deep(rizz n) {
     edgy (n <= 0) { bussin 0; }
     bussin deep(n - 1);
 }
 
 skibidi main {
-    yapping("%d", deep(5000));
+    yapping("%d", deep(84));
     bussin 0;
 }
 `,
-    expect: { exitCode: -1, stderrIncludes: "call stack size exceeded" },
+    // Depth 83 returns instantly; 84 never returns. There is no error, no
+    // exit code, no output — indistinguishable from an infinite loop, and
+    // reached at a depth ordinary recursive code can hit by accident.
+    expect: { timedOut: true },
   },
 
   "bussin-inside-a-loop-breaks": {

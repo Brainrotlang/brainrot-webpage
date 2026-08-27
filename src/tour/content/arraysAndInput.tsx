@@ -40,10 +40,8 @@ rizz aura[4] = {10, 20, 30, 40};   🚽 or fill them all at once`}</Snippet>
             growing an array later.
           </p>
           <p>
-            After a chapter of struct restrictions, arrays are a relief:{" "}
-            <code>aura[0] + aura[1]</code> works, <code>aura[i] = aura[i] + 1</code> works, and two elements
-            can be compared to each other. Everything the previous chapter could not do with{" "}
-            <code>gang</code> fields, an array does without complaint.
+            Array elements combine freely in expressions: <code>aura[0] + aura[1]</code> works,{" "}
+            <code>aura[i] = aura[i] + 1</code> works, and two elements can be compared to each other directly.
           </p>
         </>
       ),
