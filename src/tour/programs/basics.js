@@ -135,8 +135,9 @@ const operators = {
     yapping("%d %d %d %d %d", a + b, a - b, a * b, a / b, a % b);
     yapping("%d %d %d", a > b, a == b, a != b);
 
-    🚽 && and || behave as you would expect. ! does not — see the lesson.
+    🚽 &&, || and ! all behave as you would expect.
     yapping("%d %d", (a > b) && (b > 0), (a < b) || (b > 0));
+    yapping("%d %d", !L, !(a < b));
 
     rizz counter = 5;
     counter++;
@@ -151,7 +152,7 @@ const operators = {
 }
 `,
   expect: {
-    stdout: "9 5 14 3 1\n1 0 1\n1 1\nafter ++: 6\nafter --: 5\n14 vs 20\n",
+    stdout: "9 5 14 3 1\n1 0 1\n1 1\n1 1\nafter ++: 6\nafter --: 5\n14 vs 20\n",
     exitCode: 0,
   },
 };

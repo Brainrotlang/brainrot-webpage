@@ -45,10 +45,10 @@ export const userDefinedTypesChapter: TourChapter = {
             rubbish.
           </p>
           <p>
-            Two limits to know now. A <code>gang</code> can only be <em>defined</em> at the top level — inside
-            a function body it is a syntax error. And there are no arrays of structs:{" "}
-            <code>gang Point ps[2];</code> does not parse, so a collection of structs has to be separate
-            variables in this release.
+            One limit to know now: a <code>gang</code> can only be <em>defined</em> at the top level — inside
+            a function body it is a syntax error. Arrays of structs are fine, though —{" "}
+            <code>gang Point ps[2];</code> works, and each element's fields are reached with{" "}
+            <code>ps[0].x</code>.
           </p>
         </>
       ),

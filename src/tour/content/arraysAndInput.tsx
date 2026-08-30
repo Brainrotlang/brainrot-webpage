@@ -158,11 +158,61 @@ grid[1][2] = 60;`}</Snippet>
             <code>maxxing</code> idiom gives its capacity.
           </p>
           <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>Text is thin in this release.</strong> There is no string library — no length, no
-            concatenation, no comparison. In particular <code>s == "chad"</code> compiles but gives the{" "}
-            <em>wrong answer</em> while printing interpreter errors to stderr, so do not compare{" "}
-            <code>rant</code> values. A <code>rant</code> also cannot be a function parameter. Print text,
-            read text, and do your logic on numbers.
+            <strong>Compare with <code>yapcmp</code>, not <code>==</code>.</strong> There is now a small string
+            library — length, join, compare and search — covered in the next lesson. What still does{" "}
+            <em>not</em> work is the <code>==</code> operator on strings: <code>s == "chad"</code> prints
+            interpreter errors to stderr and cannot be trusted, so reach for <code>yapcmp</code> instead.
+          </p>
+        </>
+      ),
+    },
+    {
+      slug: "strings",
+      kind: "demo",
+      title: "The string toolkit",
+      summary: "yaplen, yapcat, yapcmp, yapidx — measure, join, compare, search.",
+      program: chapterPrograms.strings,
+      Body: () => (
+        <>
+          <p>
+            A <code>rant</code> now comes with four builtins — the v1 string library. They measure, join,
+            compare and search, and that is deliberately the whole set: no substring, split or replace yet.
+          </p>
+          <div className="overflow-x-auto my-4">
+            <table className="text-sm">
+              <tbody className="font-mono">
+                {[
+                  ["yaplen(s)", "length in bytes"],
+                  ["yapcat(a, b)", "a joined to b, as a new rant"],
+                  ["yapcmp(a, b)", "-1, 0 or 1 — lexicographic order"],
+                  ["yapidx(hay, needle)", "byte index of needle, or -1"],
+                ].map(([code, meaning]) => (
+                  <tr key={code}>
+                    <td className="pr-6 text-purple-400">{code}</td>
+                    <td className="text-gray-300">{meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <code>yapidx</code> returns <code>-1</code> when the needle is absent, so{" "}
+            <code>yapidx(hay, needle) &gt;= 0</code> is the idiomatic "contains" test — and it stays correct
+            even for an empty needle, which returns <code>0</code>. <code>yapcmp</code> returns exactly{" "}
+            <code>-1</code>, <code>0</code> or <code>1</code>, and a prefix always sorts before the string that
+            extends it: <code>yapcmp("app", "apple")</code> is <code>-1</code>.
+          </p>
+          <p>
+            Strings are immutable, so <code>yapcat</code> touches neither argument and hands back a new{" "}
+            <code>rant</code> — which is also why a <code>rant</code> can now be a function parameter and a
+            return value, as <code>full_name</code> below shows.
+          </p>
+          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
+            <strong>Everything is bytes, not characters.</strong> <code>yaplen("é")</code> is <code>2</code>,
+            because that is two bytes of UTF-8, and comparison and searching work on bytes too. One sharper
+            trap: a <code>yap[N]</code> buffer — what <code>slorp</code> fills — always reports length{" "}
+            <code>N</code>, its declared capacity, not the length of the text in it. Measure and compare a{" "}
+            <code>rant</code>, not a raw buffer.
           </p>
         </>
       ),

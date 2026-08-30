@@ -40,10 +40,6 @@ export const LIMITATIONS: readonly Limitation[] = [
     lesson: "basics/number-sizes",
   },
   {
-    text: "`!` returns its operand unchanged instead of negating it: !L is L, !W is W",
-    lesson: "basics/operators",
-  },
-  {
     text: "`maxxing` takes a value, not a type name",
     lesson: "basics/maxxing",
   },
@@ -60,12 +56,8 @@ export const LIMITATIONS: readonly Limitation[] = [
     lesson: "functions/defining",
   },
   {
-    text: "a non-void function with no `bussin` runs its body twice and yields 0",
+    text: "a non-void function with no `bussin` silently yields 0 instead of failing",
     lesson: "functions/defining",
-  },
-  {
-    text: "a cap-returning call cannot be tested in place — it has to land in a cap first",
-    lesson: "functions/parameters",
   },
   {
     text: "a variable declared outside a function does not parse — there are no globals",
@@ -77,10 +69,6 @@ export const LIMITATIONS: readonly Limitation[] = [
   },
   {
     text: "a `gang` cannot be defined inside a function",
-    lesson: "your-own-types/gang",
-  },
-  {
-    text: "there are no arrays of structs",
     lesson: "your-own-types/gang",
   },
   {

@@ -65,7 +65,7 @@ test("every keyword category from lang.l tokenizes as expected", () => {
     "flex goon mewing edgy amogus bruh grind bussin ohio based cringe main",
     "deadass salty schizo whopper maxxing",
     "W L",
-    "yapping yappin baka ragequit chill slorp bet",
+    "yapping yappin baka ragequit chill slorp bet gamba yaplen yapcat yapcmp yapidx",
   ].join("\n");
   const tokens = tokensOf(source);
 
@@ -73,7 +73,7 @@ test("every keyword category from lang.l tokenizes as expected", () => {
   const controlFlow = ["flex", "goon", "mewing", "edgy", "amogus", "bruh", "grind", "bussin", "ohio", "based", "cringe", "main"];
   const modifiers = ["deadass", "salty", "schizo", "whopper", "maxxing"];
   const booleans = ["W", "L"];
-  const builtins = ["yapping", "yappin", "baka", "ragequit", "chill", "slorp", "bet"];
+  const builtins = ["yapping", "yappin", "baka", "ragequit", "chill", "slorp", "bet", "gamba", "yaplen", "yapcat", "yapcmp", "yapidx"];
 
   for (const word of types) expect(find(tokens, word)?.name).toBe("typeName");
   for (const word of controlFlow) expect(find(tokens, word)?.name).toBe("keyword");

@@ -61,7 +61,23 @@ const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "whopper", "max
 
 const BOOLEAN_LITERALS = new Set(["W", "L"]);
 
-const BUILTIN_FUNCTIONS = new Set(["yapping", "yappin", "baka", "ragequit", "chill", "slorp", "bet"]);
+const BUILTIN_FUNCTIONS = new Set([
+  "yapping",
+  "yappin",
+  "baka",
+  "ragequit",
+  "chill",
+  "slorp",
+  "bet",
+  // Cryptographically safe random integers (OpenSSL RAND_bytes).
+  "gamba",
+  // v1 string library (Brainrotlang/brainrot#327): measure, join, compare,
+  // search — all standard-library builtins, no #cooked, no keyword.
+  "yaplen",
+  "yapcat",
+  "yapcmp",
+  "yapidx",
+]);
 
 const IDENTIFIER_RE = /^[A-Za-z_][A-Za-z0-9_]*/;
 // Integer or float, optional exponent, optional f/l/L suffix — covers

@@ -4,9 +4,10 @@
 // live in CommonJS rather than TypeScript, and why nothing here is
 // annotated.
 //
-// Two shapes are avoided throughout, because the interpreter cannot handle
-// them (see claims.js): a `bussin` inside a loop body, and a function
-// defined after `skibidi main`.
+// One shape is still avoided throughout, because the interpreter cannot
+// handle it (see claims.js): a function defined after `skibidi main`. An
+// early `bussin` from inside a loop used to be the other; it works as of
+// v0.3.0, and these programs now use it directly.
 
 const defining = {
   starter: `rizz double_rizz(rizz x) {
@@ -41,9 +42,8 @@ cap is_even(rizz n) {
 skibidi main {
     yapping("%.2f", blend(4, 1.5));
 
-    🚽 A cap result has to land in a cap before it can be tested.
-    cap even = is_even(10);
-    edgy (even) {
+    🚽 A cap-returning call can be tested directly, or kept in a cap first.
+    edgy (is_even(10)) {
         yapping("10 is even");
     }
 
@@ -96,26 +96,24 @@ skibidi main {
 };
 
 const returningEarly = {
-  starter: `🚽 Returning early is fine when the bussin is not inside a loop.
+  starter: `🚽 Return the moment you know the answer — including from a chain of
+🚽 guards at the top of a function.
 rizz classify(rizz aura) {
     edgy (aura > 9000) { bussin 2; }
     edgy (aura > 100) { bussin 1; }
     bussin 0;
 }
 
-🚽 When the answer is found inside a loop, keep it in a variable, bruh out,
-🚽 and bussin once at the end. A bussin inside the loop breaks (see below).
+🚽 An early bussin from inside a loop works too: return on the first hit,
+🚽 and fall through to a default if the loop finds nothing.
 rizz first_divisor(rizz n) {
-    rizz found = 0;
-
     flex (rizz i = 2; i < n; i++) {
         edgy ((n % i) == 0) {
-            found = i;
-            bruh;
+            bussin i;
         }
     }
 
-    bussin found;
+    bussin 0;
 }
 
 skibidi main {
@@ -162,8 +160,8 @@ const primeChecker = {
   starter: `cap is_prime(rizz n) {
     🚽 Return W when n is prime and L when it is not.
     🚽
-    🚽 Remember: a bussin inside a loop body breaks. Keep the answer in a
-    🚽 cap, bruh out of the loop, and bussin once at the end.
+    🚽 An early bussin from inside the loop is the natural shape here: the
+    🚽 moment you find a divisor, you have your answer.
     bussin W;
 }
 
@@ -180,20 +178,13 @@ skibidi main {
 }
 `,
   solution: `cap is_prime(rizz n) {
-    cap prime = W;
-
-    edgy (n < 2) {
-        prime = L;
-    }
+    edgy (n < 2) { bussin L; }
 
     flex (rizz i = 2; i * i <= n; i++) {
-        edgy ((n % i) == 0) {
-            prime = L;
-            bruh;
-        }
+        edgy ((n % i) == 0) { bussin L; }
     }
 
-    bussin prime;
+    bussin W;
 }
 
 skibidi main {
