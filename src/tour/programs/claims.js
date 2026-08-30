@@ -89,40 +89,6 @@ const claims = {
     expect: { exitCode: 1, stderrIncludes: "Cannot modify const variable" },
   },
 
-  "logical-not-is-a-no-op": {
-    limitation: true,
-    lesson: "basics/operators",
-    claim: "`!` returns its operand unchanged instead of negating it: !L is L, !W is W",
-    source: `skibidi main {
-    yapping("%d %d", !L, !W);
-    bussin 0;
-}
-`,
-    // The evidence is the output, not a rejection: 0 1 is `!L !W` handing
-    // back L and W. Negation would print 1 0.
-    expect: { exitCode: 0, stdout: "0 1\n" },
-  },
-
-  "logical-not-picks-the-wrong-branch": {
-    lesson: "basics/operators",
-    claim: "`edgy (!(a < b))` takes the branch it should have skipped",
-    source: `skibidi main {
-    rizz a = 7;
-    rizz b = 2;
-
-    edgy (!(a < b)) {
-        yapping("not less");
-    } amogus {
-        yapping("less");
-    }
-
-    bussin 0;
-}
-`,
-    // 7 is not less than 2, so a working `!` would print "not less".
-    expect: { exitCode: 0, stdout: "less\n" },
-  },
-
   "maxxing-rejects-a-type-name": {
     limitation: true,
     lesson: "basics/maxxing",
@@ -150,7 +116,7 @@ skibidi main {
     bussin 0;
 }
 `,
-    expect: { exitCode: 1, stderrIncludes: "is not an array" },
+    expect: { exitCode: 1, stderrIncludes: "arrays cannot be passed to a function" },
   },
 
   "mewing-needs-its-semicolon": {
@@ -301,22 +267,6 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "syntax error" },
   },
 
-  "no-arrays-of-structs": {
-    limitation: true,
-    lesson: "your-own-types/gang",
-    claim: "there are no arrays of structs",
-    source: `gang Point { rizz x; };
-
-skibidi main {
-    gang Point ps[2];
-    ps[0].x = 1;
-    yapping("%d", ps[0].x);
-    bussin 0;
-}
-`,
-    expect: { exitCode: 1, stderrIncludes: "syntax error" },
-  },
-
   "nested-init-needs-braces": {
     lesson: "your-own-types/nested",
     claim: "a nested struct field needs its own braces — a flattened initialiser is rejected",
@@ -422,10 +372,10 @@ rizz later(rizz x) {
     expect: { exitCode: 1, stderrIncludes: "expecting end of file" },
   },
 
-  "a-missing-bussin-runs-the-body-twice": {
+  "a-missing-bussin-yields-zero": {
     limitation: true,
     lesson: "functions/defining",
-    claim: "a non-void function with no `bussin` runs its body twice and yields 0",
+    claim: "a non-void function with no `bussin` silently yields 0 instead of failing",
     source: `rizz forgot(rizz x) {
     yapping("called with %d", x);
 }
@@ -436,26 +386,10 @@ skibidi main {
     bussin 0;
 }
 `,
-    // Two "called with 1" lines for one call is the whole point.
-    expect: { exitCode: 0, stdout: "called with 1\ncalled with 1\n0\n" },
-  },
-
-  "cap-result-cannot-be-tested-in-place": {
-    limitation: true,
-    lesson: "functions/parameters",
-    claim: "a cap-returning call cannot be tested in place — it has to land in a cap first",
-    source: `cap is_even(rizz n) {
-    bussin (n % 2) == 0;
-}
-
-skibidi main {
-    edgy (is_even(10)) {
-        yapping("even");
-    }
-    bussin 0;
-}
-`,
-    expect: { stderrIncludes: "cannot be used in an integer context" },
+    // The body runs once, the call is 0, and nothing warns — no error for a
+    // missing return. An earlier release ran the body twice; that is fixed,
+    // but the silent 0 remains.
+    expect: { exitCode: 0, stdout: "called with 1\n0\n" },
   },
 
   "globals-do-not-parse": {
@@ -494,7 +428,7 @@ skibidi main {
 
   "deep-recursion-exhausts-the-stack": {
     lesson: "functions/recursion",
-    claim: "recursion past about 84 levels deep hangs forever instead of crashing or returning",
+    claim: "recursion past about 84 levels deep crashes with a stack overflow instead of returning",
     source: `rizz deep(rizz n) {
     edgy (n <= 0) { bussin 0; }
     bussin deep(n - 1);
@@ -505,30 +439,10 @@ skibidi main {
     bussin 0;
 }
 `,
-    // Depth 83 returns instantly; 84 never returns. There is no error, no
-    // exit code, no output — indistinguishable from an infinite loop, and
+    // Depth 83 returns instantly; 84 traps the wasm with "memory access out
+    // of bounds" — a crash now, where an earlier release hung forever. Still
     // reached at a depth ordinary recursive code can hit by accident.
-    expect: { timedOut: true },
-  },
-
-  "bussin-inside-a-loop-breaks": {
-    lesson: "functions/returning-early",
-    claim: "a `bussin` inside a loop body in a function fails with 'No scope to exit'",
-    source: `rizz first_divisor(rizz n) {
-    flex (rizz i = 2; i < n; i++) {
-        edgy ((n % i) == 0) {
-            bussin i;
-        }
-    }
-    bussin 0;
-}
-
-skibidi main {
-    yapping("%d", first_divisor(9));
-    bussin 0;
-}
-`,
-    expect: { exitCode: 1, stderrIncludes: "No scope to exit" },
+    expect: { exitCode: -1, stderrIncludes: "memory access out of bounds" },
   },
 
   "slorp-needs-input": {

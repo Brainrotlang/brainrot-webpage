@@ -143,6 +143,47 @@ const slorp = {
   },
 };
 
+const strings = {
+  starter: `🚽 The v1 string toolkit: measure, join, compare, search.
+rant full_name(rant first, rant last) {
+    bussin yapcat(yapcat(first, " "), last);
+}
+
+skibidi main {
+    rant name = full_name("Big", "Chungus");
+
+    yapping("name:    %s", name);
+    yapping("length:  %d", yaplen(name));      🚽 bytes, not characters
+    yapping("space at %d", yapidx(name, " "));
+
+    🚽 yapidx is -1 when the needle is absent, so ">= 0" reads as "contains".
+    yapping("has 'hung': %d", yapidx(name, "hung") >= 0);
+    yapping("has 'zzz':  %d", yapidx(name, "zzz") >= 0);
+
+    🚽 yapcmp is -1 / 0 / 1; a prefix sorts before what extends it.
+    edgy (yapcmp("Chad", "Chadwick") < 0) {
+        yapping("Chad sorts before Chadwick");
+    }
+
+    🚽 Lengths count bytes: "é" is two bytes of UTF-8.
+    yapping("bytes in 'e' with accent: %d", yaplen("é"));
+
+    bussin 0;
+}
+`,
+  expect: {
+    stdout:
+      "name:    Big Chungus\n" +
+      "length:  11\n" +
+      "space at 3\n" +
+      "has 'hung': 1\n" +
+      "has 'zzz':  0\n" +
+      "Chad sorts before Chadwick\n" +
+      "bytes in 'e' with accent: 2\n",
+    exitCode: 0,
+  },
+};
+
 const slorpBuffer = {
   starter: `skibidi main {
     yap line[32];
@@ -216,6 +257,7 @@ module.exports = {
   bounds,
   matrices,
   text,
+  strings,
   slorp,
   "slorp-buffer": slorpBuffer,
   census,

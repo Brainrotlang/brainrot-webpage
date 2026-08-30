@@ -2,11 +2,11 @@
 //
 // The "Functions" chapter.
 //
-// The interesting lesson here is "Returning early". The ordinary C shape —
-// return from inside a loop — is broken in the pinned interpreter, and it is
-// the shape everyone reaches for first, so it gets a lesson of its own
-// rather than a footnote. src/tour/programs/claims.js keeps that warning
-// honest.
+// "Returning early" was once the interesting lesson here: return from inside
+// a loop — the shape everyone reaches for first — was broken in the pinned
+// interpreter. It works as of v0.3.0, so the lesson now teaches the shape
+// directly. src/tour/programs/claims.js is what caught the fix and forced
+// the rewrite instead of letting the old warning quietly mislead.
 
 import type { TourChapter } from "../types";
 import { Snippet } from "../Snippet";
@@ -41,8 +41,9 @@ export const functionsChapter: TourChapter = {
             <strong>Two rules with sharp edges.</strong> Functions must be defined <em>before</em>{" "}
             <code>skibidi main</code> — there are no forward declarations, and a definition after{" "}
             <code>main</code> is <code>syntax error, … expecting end of file</code>. And a non-
-            <code>skibidi</code> function must actually <code>bussin</code>: leave it out and the body runs{" "}
-            <em>twice</em> while the call yields 0, which is a confusing afternoon if you do not know it.
+            <code>skibidi</code> function must actually <code>bussin</code>: leave it out and the call{" "}
+            <em>silently</em> yields 0 — no error, no warning — which is a confusing afternoon if you do not
+            know it.
           </p>
         </>
       ),
@@ -63,17 +64,16 @@ export const functionsChapter: TourChapter = {
     bussin parts * factor;
 }`}</Snippet>
           <p>
-            A <code>cap</code>-returning function is the one to watch. It can return a comparison directly,
-            but its <em>result</em> cannot be tested in place:
+            A <code>cap</code>-returning function can return a comparison directly, and its result can be
+            tested in place or kept in a <code>cap</code> first — both work:
           </p>
-          <Snippet>{`cap even = is_even(10);   🚽 fine
-edgy (even) { ... }
+          <Snippet>{`edgy (is_even(10)) { ... }   🚽 fine
 
-edgy (is_even(10)) { ... }  🚽 rejected: bool in an integer context`}</Snippet>
+cap even = is_even(10);      🚽 also fine
+edgy (even) { ... }`}</Snippet>
           <p>
-            Assign it to a <code>cap</code> first. The upstream reference's own example uses the second form,
-            so this is worth remembering when copying code from the docs. Note also that a{" "}
-            <code>rizz</code> function may not return a comparison — the types have to line up.
+            Testing the call in place was rejected in earlier releases and is fine as of v0.3.0. Note that a{" "}
+            <code>rizz</code> function may not return a comparison, though — the types still have to line up.
           </p>
         </>
       ),
@@ -135,45 +135,34 @@ flex (rizz i = 0; i < limit(); i++) {
       slug: "returning-early",
       kind: "demo",
       title: "Returning early",
-      summary: "The one C habit that breaks here, and the two shapes that work.",
+      summary: "Return the moment you know the answer — including from inside a loop.",
       program: chapterPrograms["returning-early"],
       Body: () => (
         <>
           <p>
-            Returning as soon as you know the answer is normal C, and it works here — as long as the{" "}
-            <code>bussin</code> is not inside a loop.
+            Returning as soon as you know the answer is normal C, and it works here — a chain of guards at the
+            top of a function, or a <code>bussin</code> in the middle of the body, both do what they look like.
           </p>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>
-              A <code>bussin</code> inside a loop body is broken in this release.
-            </strong>{" "}
-            One call is enough to trigger it: the program stops with{" "}
-            <code>Error: No scope to exit</code>, exits non-zero, and loses its output. It happens in{" "}
-            <code>flex</code> and <code>goon</code> alike, whether the <code>bussin</code> sits directly in the
-            loop or inside an <code>edgy</code> within it.
-          </p>
-          <Snippet>{`🚽 Broken — the shape every C programmer writes first:
-flex (rizz i = 2; i < n; i++) {
-    edgy ((n % i) == 0) { bussin i; }
-}
-
-🚽 Works — keep the answer, leave the loop, return once:
-rizz found = 0;
-flex (rizz i = 2; i < n; i++) {
-    edgy ((n % i) == 0) {
-        found = i;
-        bruh;
-    }
-}
-bussin found;`}</Snippet>
           <p>
-            <code>bruh</code> inside a function's loop is itself fine — it is only the{" "}
-            <code>bussin</code> that cannot cross the loop boundary. Recursion is unaffected, since the return
-            is not inside a loop.
+            That includes returning from <em>inside a loop</em>: the natural search shape, where you return on
+            the first match and fall through to a default if the loop finds nothing.
+          </p>
+          <Snippet>{`rizz first_divisor(rizz n) {
+    flex (rizz i = 2; i < n; i++) {
+        edgy ((n % i) == 0) {
+            bussin i;      🚽 return on the first hit
+        }
+    }
+    bussin 0;              🚽 nothing found
+}`}</Snippet>
+          <p>
+            <code>bruh</code> (break) still works inside a function's loop too, if you would rather leave the
+            loop and return once at the end — but you no longer have to.
           </p>
           <p className="text-sm text-gray-400">
-            This warning is checked in CI against the interpreter the site ships, so if a release fixes it,
-            this lesson fails verification and gets rewritten instead of quietly misleading you.
+            Earlier releases could not do this: a <code>bussin</code> inside a loop failed with{" "}
+            <code>Error: No scope to exit</code>. It works as of v0.3.0, verified in CI against the interpreter
+            the site ships — the check is what forced this lesson to be rewritten rather than left misleading.
           </p>
         </>
       ),
@@ -195,19 +184,19 @@ bussin found;`}</Snippet>
     bussin n * fact(n - 1);       🚽 step
 }`}</Snippet>
           <p>
-            Recursion sidesteps the previous lesson's problem neatly: the returns are not inside a loop, so
-            early <code>bussin</code> works normally.
+            Early <code>bussin</code> works normally inside a recursive function — the base case returns as
+            soon as it is reached, exactly like the search in the previous lesson.
           </p>
           <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
             <strong>There is a floor, and it is closer than it looks.</strong> Past about 84 nested calls the
-            run does not crash — it hangs forever. No error, no exit code, no output: indistinguishable from an
-            infinite loop, and cut off the same way, by the timeout rather than by the interpreter. 84 levels
-            is not a deliberately extreme case; ordinary recursive code can reach it by accident.
+            run crashes — the stack overflows and the program stops with <code>memory access out of bounds</code>,
+            no result. 84 levels is not a deliberately extreme case; ordinary recursive code can reach it by
+            accident.
           </p>
           <p>
-            And <code>fib</code> as written below is exponential — asking for <code>fib(40)</code> will hit
-            that same timeout, for a different reason: not too deep, just too much work, which is a performance
-            lesson delivered the hard way.
+            <code>fib</code> as written below is a different hazard: it is exponential, so asking for{" "}
+            <code>fib(40)</code> does not run out of stack — its depth is small — it just does too much work
+            and hits the run timeout instead. Two different walls, reached two different ways.
           </p>
         </>
       ),
@@ -230,11 +219,9 @@ bussin found;`}</Snippet>
             <strong>Check</strong>.
           </p>
           <p>
-            Two things to keep in mind, both from earlier lessons: nothing below 2 is prime, and{" "}
-            <strong>
-              you cannot <code>bussin</code> from inside the loop
-            </strong>{" "}
-            — keep the answer in a <code>cap</code>, <code>bruh</code> out, and return once at the end.
+            One thing to keep in mind from an earlier lesson: nothing below 2 is prime. And you can{" "}
+            <code>bussin</code> straight out of the loop the moment you find a divisor — no need to stash the
+            answer and break.
           </p>
           <p className="text-sm text-gray-400">
             Testing divisors up to <code>i * i &lt;= n</code> is enough. Anything larger would already have

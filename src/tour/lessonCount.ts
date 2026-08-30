@@ -10,4 +10,4 @@
 // content.test.ts asserts this equals the manifest's real count, so it
 // cannot quietly fall behind the curriculum.
 
-export const LESSON_COUNT = 61;
+export const LESSON_COUNT = 62;

@@ -290,7 +290,7 @@ aura = aura + 1;      🚽 assign later`}</Snippet>
       slug: "operators",
       kind: "demo",
       title: "Operators",
-      summary: "Arithmetic, comparison, logic, ++ and -- — plus one that is broken.",
+      summary: "Arithmetic, comparison, logic, ++ and --.",
       program: chapterPrograms.operators,
       Body: () => (
         <>
@@ -301,16 +301,14 @@ aura = aura + 1;      🚽 assign later`}</Snippet>
             <code>3</code>.
           </p>
           <p>
-            <code>&&</code> and <code>||</code> work as expected, and <code>++</code> / <code>--</code> come in
-            both prefix and postfix forms.
+            <code>&&</code>, <code>||</code> and <code>!</code> work as expected, and <code>++</code> /{" "}
+            <code>--</code> come in both prefix and postfix forms. <code>!L</code> is <code>1</code>,{" "}
+            <code>!W</code> is <code>0</code>, and <code>edgy (!(a &lt; b))</code> takes the branch it should.
           </p>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>Careful: <code>!</code> does not negate in this release.</strong> It parses, and it returns
-            its operand unchanged — <code>!W</code> is <code>W</code>, <code>!L</code> is <code>L</code>, and{" "}
-            <code>edgy (!(a &lt; b))</code> takes the branch it should have skipped. Until that is fixed, write
-            the comparison the other way round (<code>a &gt;= b</code>) instead of negating it. This tour runs
-            its examples against the interpreter the site ships, which is how this is known rather than
-            guessed.
+          <p className="text-sm text-gray-400">
+            Earlier releases shipped a <code>!</code> that returned its operand unchanged instead of negating
+            it. That is fixed as of v0.3.0, and this tour runs its examples against the interpreter the site
+            ships, so the fix is verified rather than assumed.
           </p>
         </>
       ),
