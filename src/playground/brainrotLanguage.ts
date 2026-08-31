@@ -15,6 +15,9 @@
 //      being highlighted in this org's other editor tooling at various
 //      points (brainrot-vscode-extension's grammar, the vim plugin) — do
 //      not carry either over here.
+//   3. `whopper` (extern) and `cringe` (goto) WERE real keywords through
+//      v0.3.0 but were removed in v0.4.0 (Brainrotlang/brainrot#334) — they
+//      are ordinary identifiers now, so they are not highlighted.
 
 import { StreamLanguage, LanguageSupport, HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import type { StringStream } from "@codemirror/language";
@@ -36,6 +39,10 @@ const TYPE_KEYWORDS = new Set([
   "gang",
   "gyatt",
   "chungus",
+  // The one file-I/O name that is lexed (Brainrotlang/brainrot#329): SAUCE
+  // names a type — always written `SAUCE *f` — not an operation. Every other
+  // file op is an ordinary builtin, listed below.
+  "SAUCE",
 ]);
 
 const CONTROL_KEYWORDS = new Set([
@@ -49,7 +56,6 @@ const CONTROL_KEYWORDS = new Set([
   "bussin",
   "ohio",
   "based",
-  "cringe",
   // Not in #8's own keyword breakdown, but lang.l has `"main" { return
   // MAIN; }` — a genuine reserved word (unlike C, where `main` is just a
   // regular identifier by convention), and the hello-world sample itself
@@ -57,7 +63,7 @@ const CONTROL_KEYWORDS = new Set([
   "main",
 ]);
 
-const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "whopper", "maxxing", "lit"]);
+const MODIFIER_KEYWORDS = new Set(["deadass", "salty", "schizo", "maxxing", "lit"]);
 
 const BOOLEAN_LITERALS = new Set(["W", "L"]);
 
@@ -77,6 +83,22 @@ const BUILTIN_FUNCTIONS = new Set([
   "yapcat",
   "yapcmp",
   "yapidx",
+  // v0.4.0 file I/O (Brainrotlang/brainrot#329): stdio.h rebranded, twelve
+  // ops behind a `SAUCE *` handle. Library builtins, not keywords, not gated
+  // behind #cooked — same status as slorp. (The `SAUCE` type itself is lexed;
+  // it lives in TYPE_KEYWORDS above.)
+  "crackopen",
+  "peaceout",
+  "doomscroll",
+  "shitpost",
+  "skim",
+  "yapto",
+  "zoink",
+  "whereami",
+  "throwback",
+  "itsjoever",
+  "bricked",
+  "bustcache",
 ]);
 
 const IDENTIFIER_RE = /^[A-Za-z_][A-Za-z0-9_]*/;

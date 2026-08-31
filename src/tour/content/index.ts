@@ -15,6 +15,7 @@ import { arraysAndInputChapter } from "./arraysAndInput";
 import { pointersChapter } from "./pointers";
 import { userDefinedTypesChapter } from "./userDefinedTypes";
 import { runtimeChapter } from "./runtime";
+import { fileIoChapter } from "./fileIo";
 import { advancedChapter } from "./advanced";
 import { capstoneChapter } from "./capstone";
 
@@ -28,6 +29,7 @@ export const CHAPTERS: readonly TourChapter[] = [
   pointersChapter,
   userDefinedTypesChapter,
   runtimeChapter,
+  fileIoChapter,
   advancedChapter,
   capstoneChapter,
 ];

@@ -17,5 +17,6 @@ module.exports = {
   pointers: require("./pointers"),
   "your-own-types": require("./userDefinedTypes"),
   runtime: require("./runtime"),
+  "file-io": require("./fileIo"),
   capstone: require("./capstone"),
 };
