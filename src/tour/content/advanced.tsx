@@ -78,18 +78,15 @@ export const advancedChapter: TourChapter = {
     {
       slug: "native-calls",
       kind: "reference",
-      title: "Native calls and whopper",
-      summary: "What yapping actually is, and the keyword that is not wired up.",
+      title: "Native calls",
+      summary: "What yapping actually is, and why you cannot add your own.",
       notRunnableReason:
-        "whopper does not parse in this release, so there is no version of the second snippet that runs.",
+        "these are fragments — aura is never declared and slorp waits on stdin — shown to illustrate the shape of a native call, not to run.",
       snippets: [
         `🚽 Every built-in is a native call, and native calls are ordinary
 🚽 expressions — usable wherever a value of that type fits.
 cap ok = bet(aura > 0);
 rizz n = slorp();`,
-        `🚽 whopper is Brainrot's extern. It lexes, but the grammar has no
-🚽 rule for it yet: "syntax error, unexpected EXTERN".
-whopper rizz outside(rizz n);`,
       ],
       Body: () => (
         <>
@@ -97,7 +94,9 @@ whopper rizz outside(rizz n);`,
             <code>yapping</code>, <code>slorp</code>, <code>bet</code>, <code>ragequit</code> and{" "}
             <code>chill</code> are not statements built into the grammar — they are <em>native calls</em>,
             functions the runtime provides. That is why they behave like functions: they take typed arguments,
-            they return values you can use, and they are type-checked before the program runs.
+            they return values you can use, and they are type-checked before the program runs. The same is true
+            of the string library (<code>yaplen</code>, <code>yapcat</code>, …) and the file I/O library you
+            met in the previous chapter.
           </p>
           <p>
             You have already seen that checking bite: <code>bet(1, "…")</code> is rejected because argument one
@@ -105,10 +104,11 @@ whopper rizz outside(rizz n);`,
             is expected. Those are the native-call signatures being enforced, not special-case rules.
           </p>
           <p>
-            The one part of this story you cannot use is <code>whopper</code> — Brainrot's{" "}
-            <code>extern</code>, for declaring something implemented elsewhere. The keyword is in the lexer, so
-            editors highlight it and it looks supported, but no grammar rule accepts it. There is currently no
-            way to add your own native function from Brainrot source.
+            What you cannot do is add your own. Brainrot has no <code>extern</code>: every native call is one
+            the runtime ships. Two placeholder keywords that once hinted otherwise — <code>whopper</code>{" "}
+            (<code>extern</code>) and <code>cringe</code> (<code>goto</code>) — were reserved but never wired
+            up, and v0.4.0 removed them outright, so both are ordinary identifiers now. New native functions
+            come from the interpreter's standard library, not from Brainrot source.
           </p>
         </>
       ),

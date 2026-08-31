@@ -193,7 +193,7 @@ aura = aura + 1;      🚽 assign later`}</Snippet>
             Watch out for keywords: <code>based</code> looks like an ordinary word but it is Brainrot's{" "}
             <code>default</code>, so naming a variable <code>based</code> is a syntax error rather than a
             statement about the variable. <code>main</code>, <code>salty</code>, <code>grind</code> and{" "}
-            <code>cringe</code> are all reserved too.
+            <code>ohio</code> are all reserved too.
           </p>
         </>
       ),
