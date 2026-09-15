@@ -42,11 +42,9 @@ export const basicsChapter: TourChapter = {
             how a program signs off, and every Brainrot program you will read ends that way.
           </p>
           <p>
-            Being honest about it: in this release <code>bussin</code> inside <code>main</code> is{" "}
-            <em>ignored</em> — it sets no exit code and does not even stop execution. Inside an ordinary
-            function it works exactly as you would expect, and the Runtime chapter covers how to end a program
-            deliberately. Keep writing it here anyway; it is what the language means, and one day it will mean
-            it.
+            The value you <code>bussin</code> is the program's exit code — <code>0</code> means success — and
+            nothing after it runs. It is the same <code>return</code> you would write in C's <code>main</code>.
+            The Runtime chapter comes back to exit codes and the other way out, <code>ragequit</code>.
           </p>
         </>
       ),

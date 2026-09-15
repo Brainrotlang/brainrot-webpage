@@ -48,10 +48,6 @@ export const LIMITATIONS: readonly Limitation[] = [
     lesson: "basics/maxxing",
   },
   {
-    text: "`grind` (continue) does not parse in any form",
-    lesson: "control-flow/bruh",
-  },
-  {
     text: "a function defined after `skibidi main` does not parse — there are no forward declarations",
     lesson: "functions/defining",
   },
@@ -78,9 +74,5 @@ export const LIMITATIONS: readonly Limitation[] = [
   {
     text: "`lit` declarations are rejected inside a function body",
     lesson: "your-own-types/lit",
-  },
-  {
-    text: "`bussin` inside main sets no exit code and does not stop execution",
-    lesson: "runtime/exit-codes",
   },
 ];

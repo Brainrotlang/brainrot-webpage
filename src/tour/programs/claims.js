@@ -1,9 +1,10 @@
 // src/tour/programs/claims.js
 //
 // The tour does not only teach what Brainrot does; several lessons warn
-// about what it *doesn't* do — `!` that fails to negate, `grind` that will
-// not parse, `smol rizz` that is a syntax error. Those warnings are claims
-// about the interpreter, and until this file existed nothing checked them.
+// about what it *doesn't* do — a `maxxing` that wants a value not a type,
+// a `baka` that takes only one string, `smol rizz` that is a syntax error.
+// Those warnings are claims about the interpreter, and until this file
+// existed nothing checked them.
 //
 // The v0.1.5 → v0.1.6 bump is what made that gap concrete: `lit` went from
 // "does not parse" to fully working, and no test noticed. A warning that has
@@ -135,20 +136,6 @@ skibidi main {
     expect: { exitCode: 1, stderrIncludes: "expecting SEMICOLON" },
   },
 
-  "grind-does-not-parse": {
-    limitation: true,
-    lesson: "control-flow/bruh",
-    claim: "`grind` (continue) does not parse in any form",
-    source: `skibidi main {
-    flex (rizz i = 0; i < 2; i++) {
-        grind;
-    }
-    bussin 0;
-}
-`,
-    expect: { exitCode: 1, stderrIncludes: "unexpected CONTINUE" },
-  },
-
   "baka-takes-exactly-one-string": {
     limitation: true,
     lesson: "basics/output",
@@ -159,21 +146,6 @@ skibidi main {
 }
 `,
     expect: { exitCode: 1, stderrIncludes: "unexpected COMMA" },
-  },
-
-  "main-bussin-is-ignored": {
-    limitation: true,
-    lesson: "runtime/exit-codes",
-    claim: "`bussin` inside main sets no exit code and does not stop execution",
-    source: `skibidi main {
-    yapping("before");
-    bussin 7;
-    yapping("after");
-}
-`,
-    // Both halves of the claim in one program: "after" prints (no early
-    // return) and the process still exits 0 (the 7 goes nowhere).
-    expect: { exitCode: 0, stdout: "before\nafter\n" },
   },
 
   "bet-requires-a-cap": {

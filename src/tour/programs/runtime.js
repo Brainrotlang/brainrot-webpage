@@ -3,10 +3,10 @@
 // Programs for the "Runtime" chapter. See usingTheTour.js for why these live
 // in CommonJS rather than TypeScript, and why nothing here is annotated.
 //
-// Two things this chapter documents were found by running programs rather
-// than reading docs: `baka` takes exactly one string, and `bussin` inside
-// `main` is ignored entirely — it neither sets an exit code nor stops
-// execution. Both are in claims.js.
+// One thing this chapter documents was found by running programs rather than
+// reading docs: `baka` takes exactly one string, verified in claims.js. The
+// exit-codes program shows the other end of a run — `bussin N` out of `main`
+// setting the process exit code, which earlier releases ignored.
 
 const bet = {
   starter: `skibidi main {
@@ -71,17 +71,16 @@ const errors = {
 
 const exitCodes = {
   starter: `skibidi main {
-    yapping("leaving with code 3");
+    yapping("done, but not happy about it");
 
-    🚽 ragequit stops the program immediately with the code you give it.
-    ragequit(3);
+    🚽 The value you bussin out of main becomes the program's exit code,
+    🚽 and nothing after it runs.
+    bussin 3;
 
     yapping("never printed");
-
-    bussin 0;
 }
 `,
-  expect: { stdout: "leaving with code 3\n", exitCode: 3 },
+  expect: { stdout: "done, but not happy about it\n", exitCode: 3 },
 };
 
 const chill = {

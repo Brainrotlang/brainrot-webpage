@@ -3,10 +3,11 @@
 // The "Runtime" chapter: bet, baka, ragequit, chill, and how a Brainrot
 // program actually ends.
 //
-// The exit-codes lesson exists because `bussin` inside `main` turned out to
-// be ignored entirely — no early return, no exit code — which the Basics
-// chapter originally claimed otherwise. `ragequit` is the only way to end a
-// program deliberately.
+// The exit-codes lesson covers the two ways a program hands a status back to
+// the outside world: `bussin N` out of `main`, and `ragequit(N)` from
+// anywhere. Earlier releases ignored `bussin` inside `main` entirely — no
+// early return, no exit code — so this lesson used to be a warning about that
+// bug; it now teaches the fixed behaviour.
 
 import type { TourChapter } from "../types";
 import { Snippet } from "../Snippet";
@@ -108,24 +109,25 @@ export const runtimeChapter: TourChapter = {
       Body: () => (
         <>
           <p>
-            <code>ragequit</code> ends the program immediately with the code you hand it. The output pane
-            shows that code after every run, which is how the earlier lessons on failed assertions and out-of-
-            bounds indexing could show a <code>1</code>.
-          </p>
-          <Snippet>{`ragequit(3);   🚽 stops here, exit code 3`}</Snippet>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>
-              <code>bussin</code> inside <code>main</code> does nothing at all in this release.
-            </strong>{" "}
-            It does not set an exit code — <code>bussin 7;</code> still exits 0 — and it does not even return
-            early: statements after it keep running. Inside an ordinary function <code>bussin</code> works
-            perfectly; it is only <code>main</code> where it is ignored.
+            The value you <code>bussin</code> out of <code>main</code> is the program's exit code, and nothing
+            after it runs — <code>bussin</code> returns from <code>main</code> just as it returns from any
+            other function. The output pane shows that code after every run, which is how the earlier lessons
+            on failed assertions and out-of-bounds indexing could show a <code>1</code>. So{" "}
+            <code>bussin 0;</code> at the end of <code>main</code> is not a formality: it is what reports
+            success.
           </p>
           <p>
-            So: keep writing <code>bussin 0;</code> at the end of <code>main</code>, because every other
-            Brainrot program does and it is what the language means. But when the exit code or an early exit
-            actually matters, reach for <code>ragequit</code> — it is the only thing that works.
+            Earlier releases ignored <code>bussin</code> inside <code>main</code> entirely — no exit code, no
+            early return — but the interpreter this site ships honours it, and the program above is checked
+            against that interpreter, so the exit code of <code>3</code> is verified rather than assumed.
           </p>
+          <p>
+            <code>ragequit</code> is the other way out: it ends the whole program immediately with the code you
+            hand it, from anywhere — even inside a nested function, where <code>bussin</code> would only return
+            to the caller. Reach for it when you need to abort deep in a call, not just fall off the end of{" "}
+            <code>main</code>.
+          </p>
+          <Snippet>{`ragequit(3);   🚽 stops the whole program, exit code 3`}</Snippet>
         </>
       ),
     },

@@ -2,10 +2,9 @@
 //
 // The "Control Flow" chapter: branching and looping.
 //
-// Two lessons here exist because of what the interpreter actually does
-// rather than what a C programmer would assume: the never-ending goon
-// (which the runner is expected to cut off) and the note that `grind` —
-// continue — does not parse in this release at all.
+// The never-ending goon lesson exists because of what the interpreter
+// actually does rather than what a C programmer would assume: a synchronous
+// infinite loop the browser runner is expected to cut off.
 
 import type { TourChapter } from "../types";
 import { Snippet } from "../Snippet";
@@ -36,10 +35,6 @@ export const controlFlowChapter: TourChapter = {
             Any non-zero value counts as true, so <code>edgy (count)</code> is a legitimate way to ask "is this
             not zero". <code>W</code> and <code>L</code> are just <code>1</code> and <code>0</code> wearing
             hats.
-          </p>
-          <p>
-            One thing not to reach for: <code>!</code> does not negate in this release (see{" "}
-            <strong>Operators</strong>). Write the comparison the other way round instead.
           </p>
         </>
       ),
@@ -171,30 +166,30 @@ export const controlFlowChapter: TourChapter = {
     {
       slug: "bruh",
       kind: "demo",
-      title: "bruh",
-      summary: "Break out of a loop early — and the keyword that is missing.",
+      title: "bruh and grind",
+      summary: "Break out of a loop, and skip to the next iteration.",
       program: chapterPrograms.bruh,
       Body: () => (
         <>
           <p>
             <code>bruh</code> is <code>break</code>: leave the innermost loop immediately, skipping the rest of
-            the body and the condition.
+            the body and the condition. <code>grind</code> is <code>continue</code>: skip the rest of this
+            iteration and jump straight to the next one.
           </p>
-          <Snippet>{`flex (rizz i = 0; i < 10; i++) {
-    edgy (i == 3) {
-        bruh;
+          <Snippet>{`flex (rizz i = 0; i < 6; i++) {
+    edgy (i == 5) {
+        bruh;         🚽 stop the loop entirely
     }
-    yapping("%d", i);
+    edgy (i % 2 == 1) {
+        grind;        🚽 skip the odd numbers
+    }
+    yapping("%d", i); 🚽 prints 0, 2, 4
 }`}</Snippet>
-          <p className="mt-4 p-3 bg-amber-950/30 border border-amber-900 rounded-lg text-amber-200">
-            <strong>
-              <code>grind</code> (C's <code>continue</code>) does not work in this release.
-            </strong>{" "}
-            The keyword exists in the lexer, so it looks supported, but no form of it parses — inside{" "}
-            <code>goon</code>, inside <code>flex</code>, braced or bare, it is{" "}
-            <code>syntax error, unexpected CONTINUE</code>. Until that lands, express "skip this one" by
-            inverting the condition: put the work inside an <code>edgy</code> instead of guarding it with a
-            jump.
+          <p>
+            Both behave exactly as they do in C. Earlier releases shipped a <code>grind</code> that the parser
+            rejected outright — <code>syntax error, unexpected CONTINUE</code> — but the interpreter this site
+            ships parses and runs it, and the program above is checked against that interpreter, so the fix is
+            verified rather than assumed.
           </p>
           <p>
             <code>bruh</code> does double duty as the <code>break</code> that ends a{" "}

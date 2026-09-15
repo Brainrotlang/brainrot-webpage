@@ -122,9 +122,12 @@ const mewing = {
 
 const bruh = {
   starter: `skibidi main {
-    flex (rizz i = 0; i < 10; i++) {
-        edgy (i == 3) {
+    flex (rizz i = 0; i < 6; i++) {
+        edgy (i == 5) {
             bruh;
+        }
+        edgy (i % 2 == 1) {
+            grind;
         }
         yapping("%d", i);
     }
@@ -134,7 +137,7 @@ const bruh = {
     bussin 0;
 }
 `,
-  expect: { stdout: "0\n1\n2\nout of the loop\n", exitCode: 0 },
+  expect: { stdout: "0\n2\n4\nout of the loop\n", exitCode: 0 },
 };
 
 const ohio = {
