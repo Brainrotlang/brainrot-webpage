@@ -122,10 +122,9 @@ rizz n = slorp();`,
         "this is an index of things that do not work, so there is nothing here worth running — each entry has a lesson that demonstrates it.",
       snippets: [
         `🚽 A sample of what is on this page — none of it does what it looks like:
-p.x = p.x + 1;      🚽 a field cannot be incremented
-grind;              🚽 continue does not parse
-edgy (!(a < b))     🚽 ! does not negate
-bussin 7;           🚽 in main: no exit code, no early return`,
+smol rizz x = 1;         🚽 smol does not attach to rizz
+baka("hp: %d\\n", hp);    🚽 baka takes one string, no format args
+rizz g = 0;              🚽 no globals — declare it inside a function`,
       ],
       Body: () => (
         <>
@@ -153,10 +152,11 @@ bussin 7;           🚽 in main: no exit code, no early return`,
             ))}
           </ul>
           <p className="mt-6">
-            Two of these are worth reporting rather than working around, if you have the appetite: <code>!</code>{" "}
-            silently failing to negate, and <code>bussin</code> being ignored inside <code>main</code>. Both are
-            small, self-contained, and have reproductions sitting in this repository's{" "}
-            <code>claims.js</code>.
+            Some of these are deliberate — Brainrot has no globals and no forward declarations by design — and
+            some are rough edges that may simply get fixed, the way <code>grind</code> and <code>bussin</code>{" "}
+            inside <code>main</code> recently were. Each has a reproduction sitting in this repository's{" "}
+            <code>claims.js</code>, so the day one changes, the build says so rather than leaving a lie on this
+            page.
           </p>
           <p>
             None of this is a reason not to write Brainrot. It is a joke language that grew a semantic
